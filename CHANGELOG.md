@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.2 (2023-05-27)
+### Documentation
+* **README:** Actually fixed the badges and added link to changelog ([`aabbc39`](https://github.com/robinvandernoord/su6-checker/commit/aabbc39a5bfccf05248b8d21c105fc758befa240))
+
 ## v0.1.1 (2023-05-27)
 ### Documentation
 * **readme:** Started on the readme, more to follow when it's not almost 2 am ([`5ccfe62`](https://github.com/robinvandernoord/su6-checker/commit/5ccfe6232a58776dcee3c1a969a07711d479f0e3))
