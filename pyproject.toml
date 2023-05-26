@@ -1,0 +1,118 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "su6"
+dynamic = ["version"]
+description = 'Python cli tool to use tools for some common code quality checks (opinionated)'
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+keywords = []
+authors = [
+    { name = "Robin van der Noord", email = "robinvandernoord@gmail.com" },
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+]
+dependencies = [
+    "black",
+    "mypy",
+    "ruff",
+    "bandit",
+    "isort",
+    "typer[all]",
+    "plumbum",
+]
+
+[project.optional-dependencies]
+dev = [
+  "hatch",
+  "python-semantic-release",
+]
+
+[project.scripts]
+su6 = "su6_checker.cli:app"
+
+[project.urls]
+Documentation = "https://github.com/robinvandernoord/su6-checker#readme"
+Issues = "https://github.com/robinvandernoord/su6-checker/issues"
+Source = "https://github.com/robinvandernoord/su6-checker"
+
+[tool.hatch.version]
+path = "src/su6_checker/__about__.py"
+
+[tool.semantic_release]
+branch = "master"
+version_variable = "src/su6_checker/__about__.py:__version__"
+change_log = "CHANGELOG.md"
+upload_to_repository = false
+upload_to_release = false
+build_command = "hatch build"
+
+### required in every su6 pyproject: ###
+[tool.black]
+target-version = ["py311"]
+line-length = 120
+# 'extend-exclude' excludes files or directories in addition to the defaults
+extend-exclude = '''
+# A regex preceded with ^/ will apply only to files and directories
+# in the root of the project.
+(
+  ^.*\.bak\/.+     # ignore every .bak directory
+  ^.*venv.+\/.+    # ignore every venv directory
+  venv.+|.+\.bak   # idk why it suddenly works, let's not touch it
+)
+'''
+
+[tool.mypy]
+python_version = "3.11"
+
+# `some: int = None` looks nicer than `some: int | None = None` and pycharm still understands it
+no_implicit_optional = false
+# same as above (thrown if no_implicit_optional = False)
+strict_optional = false
+# 3rd party packages may not be typed, that's not my fault!
+ignore_missing_imports = true
+# kinda hypocritical to disable Optional and still enable strict, but I do agree with some other strict rules.
+strict = true
+# fixes defs with clear return var (doesn't seem to work for __init__ which is the most obvious case)
+# check_untyped_defs = True
+
+exclude = ["venv", ".bak"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 120
+unfixable = [
+    # Don't touch unused imports
+    "F401",
+]
+extend-exclude = ["*.bak/", "venv*/"]
+
+[tool.bandit]
+# bandit -c pyproject.toml -r .
+exclude_dirs = [".bak", "venv"]
+skips = [
+    "B108"  # hard coded /tmp/... files are fine for me tbh
+]
+
+[tool.isort]
+profile = "black"
+extend_skip_glob = ["*.bak/*"]
+
+### and if it's a project and NOT a package, add this to make it not look for anything buildable: ###
+# make this a meta package: not a library but simply allow me to run `pip install .[dev]`
+#[build-system]
+#build-backend = "setuptools.build_meta"
+#requires = ["setuptools"]
+#
+#[tool.setuptools.packages.find]
+## look nowhere for any code to 'build' since this is just used to manage (dev) dependencies
+#where = []
