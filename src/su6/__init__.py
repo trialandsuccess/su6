@@ -2,4 +2,4 @@
 #
 # SPDX-License-Identifier: MIT
 
-from .cli import app
+from .cli import app  # noqa: import is there for library reasons

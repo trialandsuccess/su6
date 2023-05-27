@@ -20,9 +20,9 @@ def _check_tool(tool: str, *args: str, verbosity: Verbosity = DEFAULT_VERBOSITY)
         cmd(*args)
         print(GREEN_CIRCLE, tool)
     except ProcessExecutionError as e:
+        print(RED_CIRCLE, tool)
         if verbosity > 1:
             log_cmd_output(e.stdout, e.stderr)
-        print(RED_CIRCLE, tool)
 
 
 @app.command()
