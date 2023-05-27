@@ -31,6 +31,9 @@ dependencies = [
     "plumbum",
 ]
 
+[template.plugins.default]
+src-layout = true
+
 [project.optional-dependencies]
 dev = [
   "hatch",
@@ -38,7 +41,7 @@ dev = [
 ]
 
 [project.scripts]
-su6 = "su6_checker.cli:app"
+su6 = "su6.cli:app"
 
 [project.urls]
 Documentation = "https://github.com/robinvandernoord/su6-checker#readme"
@@ -46,11 +49,11 @@ Issues = "https://github.com/robinvandernoord/su6-checker/issues"
 Source = "https://github.com/robinvandernoord/su6-checker"
 
 [tool.hatch.version]
-path = "src/su6_checker/__about__.py"
+path = "src/su6/__about__.py"
 
 [tool.semantic_release]
 branch = "master"
-version_variable = "src/su6_checker/__about__.py:__version__"
+version_variable = "src/su6/__about__.py:__version__"
 change_log = "CHANGELOG.md"
 upload_to_repository = false
 upload_to_release = false
