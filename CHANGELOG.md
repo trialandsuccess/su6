@@ -2,6 +2,13 @@
 
 <!--next-version-placeholder-->
 
+## v0.2.0 (2023-05-27)
+### Feature
+* **shell:** Introduce @with_exit_code decorator to generate an exit code based on the return value of a command method ([`7d6d4e2`](https://github.com/robinvandernoord/su6-checker/commit/7d6d4e27c2226538b79f63b972c90045517cbe46))
+
+### Fix
+* **log:** First show status and then show any output, this works less confusing IMO ([`176966d`](https://github.com/robinvandernoord/su6-checker/commit/176966df86383887ac837c35de1d423c1ca03546))
+
 ## v0.1.3 (2023-05-27)
 ### Fix
 * **namespace:** Moved everything to 'su6' so the hatch build succeeds (it's late...) ([`e87aed9`](https://github.com/robinvandernoord/su6-checker/commit/e87aed9660449560256e32178e730157a153bb47))
