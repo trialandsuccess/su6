@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.3 (2023-05-27)
+### Fix
+* **namespace:** Moved everything to 'su6' so the hatch build succeeds (it's late...) ([`e87aed9`](https://github.com/robinvandernoord/su6-checker/commit/e87aed9660449560256e32178e730157a153bb47))
+
 ## v0.1.2 (2023-05-27)
 ### Documentation
 * **README:** Actually fixed the badges and added link to changelog ([`aabbc39`](https://github.com/robinvandernoord/su6-checker/commit/aabbc39a5bfccf05248b8d21c105fc758befa240))
