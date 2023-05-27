@@ -34,7 +34,7 @@ def _check_tool(tool: str, *args: str, verbosity: Verbosity = DEFAULT_VERBOSITY)
 # t command is any @app.command() method, which can have anything as input and bool or int as output
 T_Command: typing.TypeAlias = typing.Callable[..., bool | int]
 # t inner wrapper calls t_command and handles its output. This wrapper gets the same (kw)args as above so ... again
-T_Inner_Wrapper: typing.TypeAlias = typing.Callable[..., None]
+T_Inner_Wrapper: typing.TypeAlias = typing.Callable[..., int]
 # outer wrapper gets the t_command method as input and outputs the inner wrapper,
 # so that gets called() with args and kwargs when that method is used from the cli
 T_Outer_Wrapper: typing.TypeAlias = typing.Callable[[T_Command], T_Inner_Wrapper]
@@ -50,16 +50,18 @@ def with_exit_code() -> T_Outer_Wrapper:
     > @with_exit_code()
     def some_command(): ...
 
-    When calling a command from a different command, _suppress=True can be added to not raise an Exit exception
+    When calling a command from a different command, _suppress=True can be added to not raise an Exit exception.
     """
 
     def outer_wrapper(func: T_Command) -> T_Inner_Wrapper:
         @functools.wraps(func)
-        def inner_wrapper(*args: typing.Any, **kwargs: typing.Any) -> None:
+        def inner_wrapper(*args: typing.Any, **kwargs: typing.Any) -> int:
             _suppress = kwargs.pop("_suppress", False)
 
-            if retcode := func(*args, **kwargs) and not _suppress:
-                raise typer.Exit(code=int(retcode))
+            if (retcode := int(func(*args, **kwargs))) and not _suppress:
+                raise typer.Exit(code=retcode)
+
+            return retcode
 
         return inner_wrapper
 
@@ -114,8 +116,8 @@ def check_all(verbosity: Verbosity = DEFAULT_VERBOSITY) -> bool:
     """
     Run all available checks
     """
-    # don't exit just yet, only exit after this command!
-    return not all(
+
+    return any(
         [
             ruff(verbosity=verbosity, _suppress=True),
             black(verbosity=verbosity, _suppress=True),
@@ -132,7 +134,7 @@ def do_fix(verbosity: Verbosity = DEFAULT_VERBOSITY) -> bool:
     """
     Do everything that's safe to fix (so not ruff because that may break semantics)
     """
-    return not all(
+    return any(
         [
             black(fix=True, verbosity=verbosity, _suppress=True),
             isort(fix=True, verbosity=verbosity, _suppress=True),
