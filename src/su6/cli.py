@@ -1,33 +1,50 @@
+"""This file contains all Typer Commands."""
 import functools
 import typing
 
 import typer
 from plumbum import local
-from plumbum.commands.processes import ProcessExecutionError
+from plumbum.commands.processes import CommandNotFound, ProcessExecutionError
 from rich import print
 
-from .core import DEFAULT_VERBOSITY, Verbosity, info, log_cmd_output, log_command
+from .core import DEFAULT_VERBOSITY, Verbosity, info, log_cmd_output, log_command, warn
 
 GREEN_CIRCLE = "🟢"
+YELLOW_CIRCLE = "🟡"
 RED_CIRCLE = "🔴"
 
 app = typer.Typer()
 
 
 def _check_tool(tool: str, *args: str, verbosity: Verbosity = DEFAULT_VERBOSITY) -> int:
-    cmd = local[tool]
+    """
+    Abstraction to run one of the cli checking tools and process its output.
 
+    Args:
+        tool: the (bash) name of the tool to run
+        verbosity: level of detail to print out (1 - 3). \
+            Level 1 (quiet) will only print a colored circle indicating success/failure; \
+            Level 2 (normal) will also print stdout/stderr; \
+            Level 3 (verbose) will also print the executed command with its arguments.
+    """
     try:
+        cmd = local[tool]
+
         if verbosity >= 3:
             log_command(cmd, args)
         cmd(*args)
         print(GREEN_CIRCLE, tool)
-        return 0
+        return 0  # success
+    except CommandNotFound:
+        if verbosity > 2:
+            warn(f"Tool {tool} not installed!")
+        print(YELLOW_CIRCLE, tool)
+        return 127  # command not found
     except ProcessExecutionError as e:
         print(RED_CIRCLE, tool)
         if verbosity > 1:
             log_cmd_output(e.stdout, e.stderr)
-        return 1
+        return 1  # general error
 
 
 # ... here indicates any number of args/kwargs:
@@ -42,8 +59,8 @@ T_Outer_Wrapper: typing.TypeAlias = typing.Callable[[T_Command], T_Inner_Wrapper
 
 def with_exit_code() -> T_Outer_Wrapper:
     """
-    Convert the return value of an app.command (bool or int) to an typer Exit with return code,
-    Unless the return value is Falsey, in which case the default exit happens (with exit code 0 indicating success)
+    Convert the return value of an app.command (bool or int) to an typer Exit with return code, \
+    Unless the return value is Falsey, in which case the default exit happens (with exit code 0 indicating success).
 
     Usage:
     > @app.command()
@@ -71,12 +88,25 @@ def with_exit_code() -> T_Outer_Wrapper:
 @app.command()
 @with_exit_code()
 def ruff(verbosity: Verbosity = DEFAULT_VERBOSITY) -> int:
+    """
+    Runs the Ruff Linter.
+
+    Args:
+        verbosity: level of detail to print out (1 - 3)
+    """
     return _check_tool("ruff", ".", verbosity=verbosity)
 
 
 @app.command()
 @with_exit_code()
 def black(fix: bool = False, verbosity: Verbosity = DEFAULT_VERBOSITY) -> int:
+    """
+    Runs the Black code formatter.
+
+    Args:
+        fix: if --fix is passed, black will be used to reformat the file(s).
+        verbosity: level of detail to print out (1 - 3)
+    """
     args = [".", "--exclude=venv.+|.+\.bak"]
     if not fix:
         if verbosity > 3:
@@ -89,6 +119,13 @@ def black(fix: bool = False, verbosity: Verbosity = DEFAULT_VERBOSITY) -> int:
 @app.command()
 @with_exit_code()
 def isort(fix: bool = False, verbosity: Verbosity = DEFAULT_VERBOSITY) -> int:
+    """
+    Runs the import sort (isort) utility.
+
+    Args:
+        fix: if --fix is passed, isort will be used to rearrange imports.
+        verbosity: level of detail to print out (1 - 3)
+    """
     args = ["."]
     if not fix:
         if verbosity > 3:
@@ -101,22 +138,48 @@ def isort(fix: bool = False, verbosity: Verbosity = DEFAULT_VERBOSITY) -> int:
 @app.command()
 @with_exit_code()
 def mypy(verbosity: Verbosity = DEFAULT_VERBOSITY) -> int:
+    """
+    Runs the mypy static type checker.
+
+    Args:
+        verbosity: level of detail to print out (1 - 3)
+    """
     return _check_tool("mypy", ".", verbosity=verbosity)
 
 
 @app.command()
 @with_exit_code()
 def bandit(verbosity: Verbosity = DEFAULT_VERBOSITY) -> int:
+    """
+    Runs the bandit security checker.
+
+    Args:
+        verbosity: level of detail to print out (1 - 3)
+    """
     return _check_tool("bandit", "-r", "-c", "pyproject.toml", ".", verbosity=verbosity)
+
+
+@app.command()
+@with_exit_code()
+def pydocstyle(verbosity: Verbosity = DEFAULT_VERBOSITY) -> int:
+    """
+    Runs the pydocstyle docstring checker.
+
+    Args:
+        verbosity: level of detail to print out (1 - 3)
+    """
+    return _check_tool("pydocstyle", ".", verbosity=verbosity)
 
 
 @app.command(name="all")
 @with_exit_code()
 def check_all(verbosity: Verbosity = DEFAULT_VERBOSITY) -> bool:
     """
-    Run all available checks
-    """
+    Run all available checks.
 
+    Args:
+        verbosity: level of detail to print out (1 - 3)
+    """
     return any(
         [
             ruff(verbosity=verbosity, _suppress=True),
@@ -124,6 +187,7 @@ def check_all(verbosity: Verbosity = DEFAULT_VERBOSITY) -> bool:
             mypy(verbosity=verbosity, _suppress=True),
             bandit(verbosity=verbosity, _suppress=True),
             isort(verbosity=verbosity, _suppress=True),
+            pydocstyle(verbosity=verbosity, _suppress=True),
         ]
     )
 
@@ -132,7 +196,10 @@ def check_all(verbosity: Verbosity = DEFAULT_VERBOSITY) -> bool:
 @with_exit_code()
 def do_fix(verbosity: Verbosity = DEFAULT_VERBOSITY) -> bool:
     """
-    Do everything that's safe to fix (so not ruff because that may break semantics)
+    Do everything that's safe to fix (so not ruff because that may break semantics).
+
+    Args:
+        verbosity: level of detail to print out (1 - 3)
     """
     return any(
         [

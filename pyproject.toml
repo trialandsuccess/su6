@@ -22,11 +22,6 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dependencies = [
-    "black",
-    "mypy",
-    "ruff",
-    "bandit",
-    "isort",
     "typer[all]",
     "plumbum",
 ]
@@ -35,9 +30,42 @@ dependencies = [
 src-layout = true
 
 [project.optional-dependencies]
+all = [
+    "black",
+    "mypy",
+    "ruff",
+    "bandit",
+    "isort",
+    "pydocstyle",
+]
+
+black = [
+    "black"
+]
+
+mypy = [
+    "mypy"
+]
+
+ruff = [
+    "ruff"
+]
+
+bandit = [
+    "bandit"
+]
+
+isort = [
+    "isort"
+]
+
+pydocstyle = [
+    "pydocstyle"
+]
+
 dev = [
-  "hatch",
-  "python-semantic-release",
+    "hatch",
+    "python-semantic-release",
 ]
 
 [project.scripts]
@@ -109,6 +137,19 @@ skips = [
 [tool.isort]
 profile = "black"
 extend_skip_glob = ["*.bak/*"]
+
+[tool.pydocstyle]
+convention = "google"
+match-dir = '(?!venv)[^\.].*'
+add_select = [
+    "D213", # = Multi-line docstring summary should start at the second line
+    "D416", # = Google-style section name checks.
+    "D417", # = Missing argument descriptions in the docstring
+]
+add_ignore = [
+    "D200", # = One-line docstring should fit on one line with quotes
+    "D212", # = Multi-line docstring summary should start at the first line
+]
 
 ### and if it's a project and NOT a package, add this to make it not look for anything buildable: ###
 # make this a meta package: not a library but simply allow me to run `pip install .[dev]`
