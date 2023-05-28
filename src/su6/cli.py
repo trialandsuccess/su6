@@ -1,14 +1,14 @@
-"""This file contains all Typer Commands"""
+"""This file contains all Typer Commands."""
 import functools
-from .core import DEFAULT_VERBOSITY, Verbosity, info, log_cmd_output, log_command, warn
 import typing
 
 import typer
 from plumbum import local
 from plumbum.commands.processes import CommandNotFound, ProcessExecutionError
-
-
 from rich import print
+
+from .core import DEFAULT_VERBOSITY, Verbosity, info, log_cmd_output, log_command, warn
+
 GREEN_CIRCLE = "🟢"
 YELLOW_CIRCLE = "🟡"
 RED_CIRCLE = "🔴"
@@ -112,10 +112,7 @@ def ruff(verbosity: Verbosity = DEFAULT_VERBOSITY) -> int:
 
 @app.command()
 @with_exit_code()
-def black(
-    fix: bool = False,
-
-          verbosity: Verbosity = DEFAULT_VERBOSITY) -> int:
+def black(fix: bool = False, verbosity: Verbosity = DEFAULT_VERBOSITY) -> int:
     """
     Runs the Black code formatter.
 
@@ -189,7 +186,7 @@ def pydocstyle(verbosity: Verbosity = DEFAULT_VERBOSITY) -> int:
 
 @app.command(name="all")
 @with_exit_code()
-def check_all(ignore_uninstalled: bool = False, verbosity: Verbosity = DEFAULT_VERBOSITY):
+def check_all(ignore_uninstalled: bool = False, verbosity: Verbosity = DEFAULT_VERBOSITY) -> bool:
     """
     Run all available checks
 
