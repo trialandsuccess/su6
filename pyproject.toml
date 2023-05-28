@@ -24,6 +24,8 @@ classifiers = [
 dependencies = [
     "typer[all]",
     "plumbum",
+    "black", # for 'find_pyproject_toml'
+    "typeguard",  # for check_type, used with parsing pyproject.toml
 ]
 
 [template.plugins.default]
@@ -88,6 +90,11 @@ upload_to_release = false
 build_command = "hatch build"
 
 ### required in every su6 pyproject: ###
+[tool.su6]
+directory = "."
+include = []
+exclude = []
+
 [tool.black]
 target-version = ["py311"]
 line-length = 120

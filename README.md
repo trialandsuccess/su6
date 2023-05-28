@@ -77,7 +77,31 @@ The following checkers are supported:
 su6 --help
 # or, easiest to start:
 su6 all
+# usual signature:
+su6 <subcommand> [directory] [--verbosity=1|2|3]
 ```
+
+where `subcommand` is `all` or one of the available checkers;  
+`directory` is the location you want to run the scans (default is current directory);  
+`verbosity` indicates how much information you want to see (default is '2').  
+In the case of `black` and `isort`, another optional parameter `--fix` can be passed.
+This will allow the tools to do the suggested changes (if applicable).
+Running `su6 fix` will run both these tools with the `--fix` flag.
+
+### Configuration
+
+In your `pyproject.toml`, you can add a `[tools.su6]` section to configure some of the behavior of this tools.
+Currently, the following keys are supported:
+
+```toml
+[tool.su6]
+directory = "." # string path to the directory on which to run all tools, e.g. 'src'
+include = [] # list of checks to run (when calling `su6 all`), e.g. ['black', 'mypy']
+exclude = [] # list of checks to skip (when calling `su6 all`), e.g. ['bandit']
+```
+
+All keys are optional. Note that if you have both an `include` as well as an `exclude`, all the tools in `include` will
+run and `exclude` will be fully ignored.
 
 ### Github Action
 
