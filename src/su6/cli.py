@@ -30,6 +30,10 @@ def _check_tool(tool: str, *args: str, verbosity: Verbosity = DEFAULT_VERBOSITY)
             Level 1 (quiet) will only print a colored circle indicating success/failure; \
             Level 2 (normal) will also print stdout/stderr; \
             Level 3 (verbose) will also print the executed command with its arguments.
+
+    Todo:
+        allow (optionally) specifying (default) target directory via cli or pyproject.toml,
+        perhaps other settings too
     """
     try:
         cmd = local[tool]
@@ -184,7 +188,7 @@ def pydocstyle(verbosity: Verbosity = DEFAULT_VERBOSITY) -> int:
 @with_exit_code()
 def check_all(ignore_uninstalled: bool = False, verbosity: Verbosity = DEFAULT_VERBOSITY) -> bool:
     """
-    Run all available checks
+    Run all available checks.
 
     Args:
         ignore_uninstalled: use --ignore-uninstalled to skip exit code 127 (command not found)
