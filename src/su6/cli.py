@@ -220,5 +220,12 @@ def do_fix(
     return any(exit_codes)
 
 
+# @app.callback()
+# def main(config: str = None):
+#     print(config)
+#
+#     # todo: allow user to specify su6 --config ./path/to/pyproject.toml <operation>
+
+
 if __name__ == "__main__":
     app()

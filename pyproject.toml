@@ -39,6 +39,7 @@ all = [
     "bandit",
     "isort",
     "pydocstyle",
+    "pytest",
 ]
 
 black = [
@@ -63,6 +64,11 @@ isort = [
 
 pydocstyle = [
     "pydocstyle"
+]
+
+pytest = [
+    "pytest",
+    "pytest-cov",
 ]
 
 dev = [
@@ -91,7 +97,7 @@ build_command = "hatch build"
 
 ### required in every su6 pyproject: ###
 [tool.su6]
-directory = "."
+directory = "src"
 include = []
 exclude = []
 
@@ -167,3 +173,8 @@ add_ignore = [
 #[tool.setuptools.packages.find]
 ## look nowhere for any code to 'build' since this is just used to manage (dev) dependencies
 #where = []
+
+[tool.pytest.ini_options]
+pythonpath = [
+  "src",
+]
