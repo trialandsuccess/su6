@@ -22,7 +22,7 @@ app = typer.Typer()
 
 def _check_tool(tool: str, *args: str, verbosity: Verbosity = DEFAULT_VERBOSITY) -> int:
     """
-    Abstraction to run one of the cli checking tools and process its output
+    Abstraction to run one of the cli checking tools and process its output.
 
     Args:
         tool: the (bash) name of the tool to run
@@ -188,7 +188,7 @@ def pydocstyle(verbosity: Verbosity = DEFAULT_VERBOSITY) -> int:
 @with_exit_code()
 def check_all(ignore_uninstalled: bool = False, verbosity: Verbosity = DEFAULT_VERBOSITY) -> bool:
     """
-    Run all available checks
+    Run all available checks.
 
     Args:
         ignore_uninstalled: use --ignore-uninstalled to skip exit code 127 (command not found)
