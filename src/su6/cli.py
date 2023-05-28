@@ -18,7 +18,7 @@ app = typer.Typer()
 
 def _check_tool(tool: str, *args: str, verbosity: Verbosity = DEFAULT_VERBOSITY) -> int:
     """
-    Abstraction to run one of the cli checking tools and process its output.
+    Abstraction to run one of the cli checking tools and process its output
 
     Args:
         tool: the (bash) name of the tool to run
@@ -26,6 +26,10 @@ def _check_tool(tool: str, *args: str, verbosity: Verbosity = DEFAULT_VERBOSITY)
             Level 1 (quiet) will only print a colored circle indicating success/failure; \
             Level 2 (normal) will also print stdout/stderr; \
             Level 3 (verbose) will also print the executed command with its arguments.
+
+    Todo:
+        allow (optionally) specifying (default) target directory via cli or pyproject.toml,
+        perhaps other settings too
     """
     try:
         cmd = local[tool]
