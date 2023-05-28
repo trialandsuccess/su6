@@ -13,6 +13,10 @@ GREEN_CIRCLE = "🟢"
 YELLOW_CIRCLE = "🟡"
 RED_CIRCLE = "🔴"
 
+EXIT_CODE_SUCCESS = 0
+EXIT_CODE_ERROR = 1
+EXIT_CODE_COMMAND_NOT_FOUND = 127
+
 app = typer.Typer()
 
 
@@ -38,17 +42,17 @@ def _check_tool(tool: str, *args: str, verbosity: Verbosity = DEFAULT_VERBOSITY)
             log_command(cmd, args)
         cmd(*args)
         print(GREEN_CIRCLE, tool)
-        return 0  # success
+        return EXIT_CODE_SUCCESS  # success
     except CommandNotFound:
         if verbosity > 2:
             warn(f"Tool {tool} not installed!")
         print(YELLOW_CIRCLE, tool)
-        return 127  # command not found
+        return EXIT_CODE_COMMAND_NOT_FOUND  # command not found
     except ProcessExecutionError as e:
         print(RED_CIRCLE, tool)
         if verbosity > 1:
             log_cmd_output(e.stdout, e.stderr)
-        return 1  # general error
+        return EXIT_CODE_ERROR  # general error
 
 
 # ... here indicates any number of args/kwargs:
@@ -78,9 +82,14 @@ def with_exit_code() -> T_Outer_Wrapper:
         @functools.wraps(func)
         def inner_wrapper(*args: typing.Any, **kwargs: typing.Any) -> int:
             _suppress = kwargs.pop("_suppress", False)
+            _ignore_exit_codes = kwargs.pop("_ignore", set())
 
             if (retcode := int(func(*args, **kwargs))) and not _suppress:
                 raise typer.Exit(code=retcode)
+
+            if retcode in _ignore_exit_codes:
+                # there is an error code, but we choose to ignore it -> return 0
+                return EXIT_CODE_SUCCESS
 
             return retcode
 
@@ -177,21 +186,26 @@ def pydocstyle(verbosity: Verbosity = DEFAULT_VERBOSITY) -> int:
 
 @app.command(name="all")
 @with_exit_code()
-def check_all(verbosity: Verbosity = DEFAULT_VERBOSITY) -> bool:
+def check_all(ignore_uninstalled: bool = False, verbosity: Verbosity = DEFAULT_VERBOSITY) -> bool:
     """
-    Run all available checks.
+    Run all available checks
 
     Args:
+        ignore_uninstalled: use --ignore-uninstalled to skip exit code 127 (command not found)
         verbosity: level of detail to print out (1 - 3)
     """
+    ignored_exit_codes = set()
+    if ignore_uninstalled:
+        ignored_exit_codes.add(EXIT_CODE_COMMAND_NOT_FOUND)
+
     return any(
         [
-            ruff(verbosity=verbosity, _suppress=True),
-            black(verbosity=verbosity, _suppress=True),
-            mypy(verbosity=verbosity, _suppress=True),
-            bandit(verbosity=verbosity, _suppress=True),
-            isort(verbosity=verbosity, _suppress=True),
-            pydocstyle(verbosity=verbosity, _suppress=True),
+            ruff(verbosity=verbosity, _suppress=True, _ignore=ignored_exit_codes),
+            black(verbosity=verbosity, _suppress=True, _ignore=ignored_exit_codes),
+            mypy(verbosity=verbosity, _suppress=True, _ignore=ignored_exit_codes),
+            bandit(verbosity=verbosity, _suppress=True, _ignore=ignored_exit_codes),
+            isort(verbosity=verbosity, _suppress=True, _ignore=ignored_exit_codes),
+            pydocstyle(verbosity=verbosity, _suppress=True, _ignore=ignored_exit_codes),
         ]
     )
 
