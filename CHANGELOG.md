@@ -2,6 +2,17 @@
 
 <!--next-version-placeholder-->
 
+## v0.4.0 (2023-05-28)
+### Feature
+* **config:** Add pyproject.toml settings ([`9189844`](https://github.com/robinvandernoord/su6-checker/commit/918984467e2d5eef0db0caaa134461ce73286456))
+* **cli:** Allow optional argument (directory) to all commands to overwrite default ('.') behavior ([`6a767b6`](https://github.com/robinvandernoord/su6-checker/commit/6a767b60df3a358a3a356535dbe0966e413c35fe))
+* **all:** Allow running `su6 all --ignore-uninstalled` so missing checking tools don't affect the final exit code of 'all' ([`b48f3e3`](https://github.com/robinvandernoord/su6-checker/commit/b48f3e345cccfc8c006901b1e0187b7cbeebc398))
+
+### Documentation
+* Fix missing . in docstrings ([`20fa1e1`](https://github.com/robinvandernoord/su6-checker/commit/20fa1e10d39d4198dfe7af5bfee662249cb1ab2e))
+* **github:** Describe github action workflow yaml ([`972e5db`](https://github.com/robinvandernoord/su6-checker/commit/972e5db4e068833624891a6baa0f287971ad5a6c))
+* Add todo and intentional pydocstyle error ([`5e9e987`](https://github.com/robinvandernoord/su6-checker/commit/5e9e987de5b0c4e4647ff7789129a3f5a58b2dcc))
+
 ## v0.3.0 (2023-05-28)
 ### Feature
 * **all:** Allow running `su6 all --ignore-uninstalled` so missing checking tools don't affect the final exit code of 'all' ([`35ad498`](https://github.com/robinvandernoord/su6-checker/commit/35ad498983bd651d66bfa3e773b9a1e1e7d94e6c))
