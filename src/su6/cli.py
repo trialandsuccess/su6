@@ -98,29 +98,35 @@ def with_exit_code() -> T_Outer_Wrapper:
     return outer_wrapper
 
 
+# 'directory' is an optional cli argument to many commands, so we define the type here for reuse:
+T_directory: typing.TypeAlias = typing.Annotated[str, typer.Argument()]  # = "."
+
+
 @app.command()
 @with_exit_code()
-def ruff(verbosity: Verbosity = DEFAULT_VERBOSITY) -> int:
+def ruff(directory: T_directory = ".", verbosity: Verbosity = DEFAULT_VERBOSITY) -> int:
     """
     Runs the Ruff Linter.
 
     Args:
+        directory: where to run ruff on (default is current dir)
         verbosity: level of detail to print out (1 - 3)
     """
-    return _check_tool("ruff", ".", verbosity=verbosity)
+    return _check_tool("ruff", directory, verbosity=verbosity)
 
 
 @app.command()
 @with_exit_code()
-def black(fix: bool = False, verbosity: Verbosity = DEFAULT_VERBOSITY) -> int:
+def black(directory: T_directory = ".", fix: bool = False, verbosity: Verbosity = DEFAULT_VERBOSITY) -> int:
     """
     Runs the Black code formatter.
 
     Args:
+        directory: where to run black on (default is current dir)
         fix: if --fix is passed, black will be used to reformat the file(s).
         verbosity: level of detail to print out (1 - 3)
     """
-    args = [".", "--exclude=venv.+|.+\.bak"]
+    args = [directory, "--exclude=venv.+|.+\.bak"]
     if not fix:
         if verbosity > 3:
             info("note: running WITHOUT --check -> changing files")
@@ -131,15 +137,16 @@ def black(fix: bool = False, verbosity: Verbosity = DEFAULT_VERBOSITY) -> int:
 
 @app.command()
 @with_exit_code()
-def isort(fix: bool = False, verbosity: Verbosity = DEFAULT_VERBOSITY) -> int:
+def isort(directory: T_directory = ".", fix: bool = False, verbosity: Verbosity = DEFAULT_VERBOSITY) -> int:
     """
     Runs the import sort (isort) utility.
 
     Args:
+        directory: where to run isort on (default is current dir)
         fix: if --fix is passed, isort will be used to rearrange imports.
         verbosity: level of detail to print out (1 - 3)
     """
-    args = ["."]
+    args = [directory]
     if not fix:
         if verbosity > 3:
             info("note: running WITHOUT --check -> changing files")
@@ -150,47 +157,53 @@ def isort(fix: bool = False, verbosity: Verbosity = DEFAULT_VERBOSITY) -> int:
 
 @app.command()
 @with_exit_code()
-def mypy(verbosity: Verbosity = DEFAULT_VERBOSITY) -> int:
+def mypy(directory: T_directory = ".", verbosity: Verbosity = DEFAULT_VERBOSITY) -> int:
     """
     Runs the mypy static type checker.
 
     Args:
+        directory: where to run mypy on (default is current dir)
         verbosity: level of detail to print out (1 - 3)
     """
-    return _check_tool("mypy", ".", verbosity=verbosity)
+    return _check_tool("mypy", directory, verbosity=verbosity)
 
 
 @app.command()
 @with_exit_code()
-def bandit(verbosity: Verbosity = DEFAULT_VERBOSITY) -> int:
+def bandit(directory: T_directory = ".", verbosity: Verbosity = DEFAULT_VERBOSITY) -> int:
     """
     Runs the bandit security checker.
 
     Args:
+        directory: where to run bandit on (default is current dir)
         verbosity: level of detail to print out (1 - 3)
     """
-    return _check_tool("bandit", "-r", "-c", "pyproject.toml", ".", verbosity=verbosity)
+    return _check_tool("bandit", "-r", "-c", "pyproject.toml", directory, verbosity=verbosity)
 
 
 @app.command()
 @with_exit_code()
-def pydocstyle(verbosity: Verbosity = DEFAULT_VERBOSITY) -> int:
+def pydocstyle(directory: T_directory = ".", verbosity: Verbosity = DEFAULT_VERBOSITY) -> int:
     """
     Runs the pydocstyle docstring checker.
 
     Args:
+        directory: where to run pydocstyle on (default is current dir)
         verbosity: level of detail to print out (1 - 3)
     """
-    return _check_tool("pydocstyle", ".", verbosity=verbosity)
+    return _check_tool("pydocstyle", directory, verbosity=verbosity)
 
 
 @app.command(name="all")
 @with_exit_code()
-def check_all(ignore_uninstalled: bool = False, verbosity: Verbosity = DEFAULT_VERBOSITY) -> bool:
+def check_all(
+    directory: T_directory = ".", ignore_uninstalled: bool = False, verbosity: Verbosity = DEFAULT_VERBOSITY
+) -> bool:
     """
     Run all available checks.
 
     Args:
+        directory: where to run the tools on (default is current dir)
         ignore_uninstalled: use --ignore-uninstalled to skip exit code 127 (command not found)
         verbosity: level of detail to print out (1 - 3)
     """
@@ -200,29 +213,30 @@ def check_all(ignore_uninstalled: bool = False, verbosity: Verbosity = DEFAULT_V
 
     return any(
         [
-            ruff(verbosity=verbosity, _suppress=True, _ignore=ignored_exit_codes),
-            black(verbosity=verbosity, _suppress=True, _ignore=ignored_exit_codes),
-            mypy(verbosity=verbosity, _suppress=True, _ignore=ignored_exit_codes),
-            bandit(verbosity=verbosity, _suppress=True, _ignore=ignored_exit_codes),
-            isort(verbosity=verbosity, _suppress=True, _ignore=ignored_exit_codes),
-            pydocstyle(verbosity=verbosity, _suppress=True, _ignore=ignored_exit_codes),
+            ruff(directory, verbosity=verbosity, _suppress=True, _ignore=ignored_exit_codes),
+            black(directory, verbosity=verbosity, _suppress=True, _ignore=ignored_exit_codes),
+            mypy(directory, verbosity=verbosity, _suppress=True, _ignore=ignored_exit_codes),
+            bandit(directory, verbosity=verbosity, _suppress=True, _ignore=ignored_exit_codes),
+            isort(directory, verbosity=verbosity, _suppress=True, _ignore=ignored_exit_codes),
+            pydocstyle(directory, verbosity=verbosity, _suppress=True, _ignore=ignored_exit_codes),
         ]
     )
 
 
 @app.command(name="fix")
 @with_exit_code()
-def do_fix(verbosity: Verbosity = DEFAULT_VERBOSITY) -> bool:
+def do_fix(directory: T_directory = ".", verbosity: Verbosity = DEFAULT_VERBOSITY) -> bool:
     """
     Do everything that's safe to fix (so not ruff because that may break semantics).
 
     Args:
+        directory: where to run the tools on (default is current dir)
         verbosity: level of detail to print out (1 - 3)
     """
     return any(
         [
-            black(fix=True, verbosity=verbosity, _suppress=True),
-            isort(fix=True, verbosity=verbosity, _suppress=True),
+            black(directory, fix=True, verbosity=verbosity, _suppress=True),
+            isort(directory, fix=True, verbosity=verbosity, _suppress=True),
         ]
     )
 
