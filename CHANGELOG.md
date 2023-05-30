@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.5.1 (2023-05-30)
+### Fix
+* **cov:** Forgot to add pytest-cov as dependency for 'all' ([`fef9b41`](https://github.com/robinvandernoord/su6-checker/commit/fef9b41543ecce11b8f157be8e7a5c5f59d6f248))
+
 ## v0.5.0 (2023-05-30)
 ### Feature
 * **pytest:** Add pytest with coverage options ([`979ff01`](https://github.com/robinvandernoord/su6-checker/commit/979ff01afec6ea80fbfd08d53a7002b7ec68364c))
