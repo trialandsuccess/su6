@@ -1,4 +1,7 @@
 """This file contains all Typer Commands."""
+import contextlib
+import math
+import os
 import typing
 from json import load as json_load
 
@@ -176,7 +179,11 @@ def pydocstyle(directory: T_directory = None) -> int:
 @app.command()
 @with_exit_code()
 def pytest(
-    directory: T_directory = None, html: bool = False, json: bool = False, coverage: int = None
+    directory: T_directory = None,
+    html: bool = False,
+    json: bool = False,
+    coverage: int = None,
+    badge: bool = None,
 ) -> int:  # pragma: no cover
     """
     Runs all pytests.
@@ -186,6 +193,7 @@ def pytest(
         html: generate HTML coverage output?
         json: generate JSON coverage output?
         coverage: threshold for coverage (in %)
+        badge: generate coverage badge (svg)? If you want to change the name, do this in pyproject.toml
 
     Example:
         > su6 pytest --coverage 50
@@ -195,11 +203,15 @@ def pytest(
 
         if --coverage is not passed, there will be no circle for coverage.
     """
-    config = state.update_config(directory=directory, coverage=coverage)
+    config = state.update_config(directory=directory, coverage=coverage, badge=badge)
+
+    if config.badge and config.coverage is None:
+        # not None but still check cov
+        config.coverage = 0
 
     args = ["--cov", config.directory]
 
-    if config.coverage:
+    if config.coverage is not None:
         # json output required!
         json = True
 
@@ -211,10 +223,10 @@ def pytest(
 
     exit_code = _check_tool("pytest", *args)
 
-    if config.coverage:
+    if config.coverage is not None:
         with open("coverage.json") as f:
             data = json_load(f)
-            percent_covered = round(data["totals"]["percent_covered"])
+            percent_covered = math.floor(data["totals"]["percent_covered"])
 
         # if actual coverage is less than the the threshold, exit code should be success (0)
         exit_code = percent_covered < config.coverage
@@ -222,12 +234,22 @@ def pytest(
         if state.format == "text":
             print(circle, "coverage")
 
+        if config.badge:
+            with contextlib.suppress(FileNotFoundError):
+                os.remove(config.badge)
+
+            result = local["coverage-badge"]("-o", config.badge)
+            if state.verbosity > 2:
+                print(result)
+
     return exit_code
 
 
 @app.command(name="all")
 @with_exit_code()
-def check_all(directory: T_directory = None, ignore_uninstalled: bool = False, coverage: float = None) -> bool:
+def check_all(
+    directory: T_directory = None, ignore_uninstalled: bool = False, coverage: float = None, badge: bool = None
+) -> bool:
     """
     Run all available checks.
 
@@ -235,6 +257,7 @@ def check_all(directory: T_directory = None, ignore_uninstalled: bool = False, c
         directory: where to run the tools on (default is current dir)
         ignore_uninstalled: use --ignore-uninstalled to skip exit code 127 (command not found)
         coverage: pass to pytest()
+        badge: pass to pytest()
 
     """
     config = state.update_config(directory=directory)
@@ -251,6 +274,7 @@ def check_all(directory: T_directory = None, ignore_uninstalled: bool = False, c
 
         if tool is pytest:  # pragma: no cover
             kw["coverage"] = coverage
+            kw["badge"] = badge
 
         exit_codes.append(tool(*a, **kw))
 

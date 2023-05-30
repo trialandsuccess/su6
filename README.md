@@ -1,7 +1,11 @@
 # su6-checker
 
 [![PyPI - Version](https://img.shields.io/pypi/v/su6.svg)](https://pypi.org/project/su6)
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/su6.svg)](https://pypi.org/project/su6)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/su6.svg)](https://pypi.org/project/su6)  
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)  
+[![su6 checks](https://github.com/robinvandernoord/su6-checker/actions/workflows/su6.yml/badge.svg)](https://github.com/robinvandernoord/su6-checker/actions)
+![coverage.svg](coverage.svg)
 
 -----
 su6 (6 is pronounced as '/zɛs/' in Dutch, so 'su6' is basically 'success')  
@@ -74,7 +78,7 @@ The following checkers are supported:
 ### pytest
 
 - install: `pip install su6[pytest]`
-- use: `su6 pytest [directory] [--coverage <int>] [--json] [--html]`
+- use: `su6 pytest [directory] [--coverage <int>] [--json] [--html] [--badge <path>]`
 - functionality: tester with coverage
 - pypi: [pytest](https://pypi.org/project/pytest/), [pytest-cov](https://pypi.org/project/pytest-cov/)
 
@@ -96,11 +100,13 @@ where `subcommand` is `all` or one of the available checkers;
 In the case of `black` and `isort`, another optional parameter `--fix` can be passed.
 This will allow the tools to do the suggested changes (if applicable).
 Running `su6 fix` will run both these tools with the `--fix` flag.  
-For `pytest`, `--json`, `--html` and `--coverage <int>` are supported. The latter can also be configured in the
-pyproject.toml (see ['Configuration'](#configuration)).
+For `pytest`, `--json`, `--html`, `--badge <str>` and `--coverage <int>` are supported. 
+The latter two can also be configured in the pyproject.toml (see ['Configuration'](#configuration)).
 The first two arguments can be used to control the output format of `pytest --cov`. Both options can be used at the same
 time. The `--coverage` flag can be used to set a threshold for code coverage %. If the coverage is less than this
-threshold, the check will fail.
+threshold, the check will fail. 
+If `badge` is set using cli or toml config, a SVG badge with the coverage % will be generated. 
+This badge can be used in for example the README.md.
 
 ### Configuration
 
@@ -113,6 +119,7 @@ directory = "." # string path to the directory on which to run all tools, e.g. '
 include = [] # list of checks to run (when calling `su6 all`), e.g. ['black', 'mypy']
 exclude = [] # list of checks to skip (when calling `su6 all`), e.g. ['bandit']
 coverage = 100 # int threshold for pytest coverage 
+badge = "coverage.svg"  # str path or bool (true | false) whether and where to output the coverage badge
 ```
 
 All keys are optional. Note that if you have both an `include` as well as an `exclude`, all the tools in `include` will

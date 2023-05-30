@@ -213,6 +213,8 @@ DEFAULT_FORMAT = Format.text
 
 C = typing.TypeVar("C", bound=T_Command)
 
+DEFAULT_BADGE = "coverage.svg"
+
 
 @dataclass
 class Config:
@@ -227,6 +229,15 @@ class Config:
     include: typing.Optional[list[str]] = None
     exclude: typing.Optional[list[str]] = None
     coverage: typing.Optional[float] = None  # only relevant for pytest
+    badge: bool | str = False  # only relevant for pytest
+
+    def __post_init__(self) -> None:
+        """
+        Update the value of badge to the default path.
+        """
+        if self.badge is True:  # pragma: no cover
+            # no cover because pytest can't test pytest :C
+            self.badge = DEFAULT_BADGE
 
     def determine_which_to_run(self, options: list[C]) -> list[C]:
         """

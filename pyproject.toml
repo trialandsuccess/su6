@@ -41,6 +41,7 @@ all = [
     "pydocstyle",
     "pytest",
     "pytest-cov",
+    "coverage-badge",
 ]
 
 black = [
@@ -70,6 +71,7 @@ pydocstyle = [
 pytest = [
     "pytest",
     "pytest-cov",
+    "coverage-badge",
 ]
 
 dev = [
@@ -102,6 +104,7 @@ directory = "src"
 include = []
 exclude = []
 coverage = 99
+badge = true
 
 [tool.black]
 target-version = ["py311"]
