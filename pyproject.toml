@@ -40,6 +40,7 @@ all = [
     "isort",
     "pydocstyle",
     "pytest",
+    "pytest-cov",
 ]
 
 black = [
