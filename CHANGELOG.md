@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.5.3 (2023-05-30)
+### Fix
+* **mypy:** Stricter rules regarding None ( but still allow implicit in function args >:( ) ([`46ff1d4`](https://github.com/robinvandernoord/su6-checker/commit/46ff1d4850074045c20f19d7135bb95d200a835b))
+
 ## v0.5.2 (2023-05-30)
 ### Documentation
 * **readme:** Add supported args for each checker in 'use' ([`c091d2b`](https://github.com/robinvandernoord/su6-checker/commit/c091d2b21fa90ee0f2383d9bb101c327b0fd8036))
