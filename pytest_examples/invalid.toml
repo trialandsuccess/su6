@@ -1,0 +1,3 @@
+[tool.su6]
+directory = 0
+include = "mypy" # invalid type

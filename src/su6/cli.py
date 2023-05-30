@@ -1,5 +1,6 @@
 """This file contains all Typer Commands."""
 import typing
+from json import load as json_load
 
 import typer
 from plumbum import local
@@ -15,10 +16,10 @@ from .core import (
     RED_CIRCLE,
     YELLOW_CIRCLE,
     Verbosity,
-    get_su6_config,
     info,
     log_cmd_output,
     log_command,
+    state,
     warn,
     with_exit_code,
 )
@@ -26,37 +27,35 @@ from .core import (
 app = typer.Typer()
 
 
-def _check_tool(tool: str, *args: str, verbosity: Verbosity = DEFAULT_VERBOSITY) -> int:
+def _check_tool(tool: str, *args: str) -> int:
     """
     Abstraction to run one of the cli checking tools and process its output.
 
     Args:
         tool: the (bash) name of the tool to run
-        verbosity: level of detail to print out (1 - 3). \
+         . \
             Level 1 (quiet) will only print a colored circle indicating success/failure; \
             Level 2 (normal) will also print stdout/stderr; \
             Level 3 (verbose) will also print the executed command with its arguments.
-
-    Todo:
-        allow (optionally) specifying (default) target directory via cli or pyproject.toml,
-        perhaps other settings too
     """
     try:
         cmd = local[tool]
 
-        if verbosity >= 3:
+        if state.verbosity >= 3:
             log_command(cmd, args)
-        cmd(*args)
+        result = cmd(*args)
         print(GREEN_CIRCLE, tool)
+        if state.verbosity > 2:  # pragma: no cover
+            log_cmd_output(result)
         return EXIT_CODE_SUCCESS  # success
     except CommandNotFound:
-        if verbosity > 2:
+        if state.verbosity > 2:  # pragma: no cover
             warn(f"Tool {tool} not installed!")
         print(YELLOW_CIRCLE, tool)
         return EXIT_CODE_COMMAND_NOT_FOUND  # command not found
     except ProcessExecutionError as e:
         print(RED_CIRCLE, tool)
-        if verbosity > 1:
+        if state.verbosity > 1:
             log_cmd_output(e.stdout, e.stderr)
         return EXIT_CODE_ERROR  # general error
 
@@ -67,145 +66,198 @@ T_directory: typing.TypeAlias = typing.Annotated[str, typer.Argument()]  # = "."
 
 @app.command()
 @with_exit_code()
-def ruff(directory: T_directory = None, verbosity: Verbosity = DEFAULT_VERBOSITY) -> int:
+def ruff(directory: T_directory = None) -> int:
     """
     Runs the Ruff Linter.
 
     Args:
         directory: where to run ruff on (default is current dir)
-        verbosity: level of detail to print out (1 - 3)
+
     """
-    config = get_su6_config(directory=directory, verbosity=verbosity)
-    return _check_tool("ruff", config.directory, verbosity=verbosity)
+    config = state.update_config(directory=directory)
+    return _check_tool("ruff", config.directory)
 
 
 @app.command()
 @with_exit_code()
-def black(directory: T_directory = None, fix: bool = False, verbosity: Verbosity = DEFAULT_VERBOSITY) -> int:
+def black(directory: T_directory = None, fix: bool = False) -> int:
     """
     Runs the Black code formatter.
 
     Args:
         directory: where to run black on (default is current dir)
         fix: if --fix is passed, black will be used to reformat the file(s).
-        verbosity: level of detail to print out (1 - 3)
+
     """
-    config = get_su6_config(directory=directory, verbosity=verbosity)
+    config = state.update_config(directory=directory)
 
     args = [config.directory, "--exclude=venv.+|.+\.bak"]
     if not fix:
-        if verbosity > 3:
-            info("note: running WITHOUT --check -> changing files")
         args.append("--check")
+    elif state.verbosity > 2:
+        info("note: running WITHOUT --check -> changing files")
 
-    return _check_tool("black", *args, verbosity=verbosity)
+    return _check_tool("black", *args)
 
 
 @app.command()
 @with_exit_code()
-def isort(directory: T_directory = None, fix: bool = False, verbosity: Verbosity = DEFAULT_VERBOSITY) -> int:
+def isort(directory: T_directory = None, fix: bool = False) -> int:
     """
     Runs the import sort (isort) utility.
 
     Args:
         directory: where to run isort on (default is current dir)
         fix: if --fix is passed, isort will be used to rearrange imports.
-        verbosity: level of detail to print out (1 - 3)
+
     """
-    config = get_su6_config(directory=directory, verbosity=verbosity)
+    config = state.update_config(directory=directory)
     args = [config.directory]
     if not fix:
-        if verbosity > 3:
-            info("note: running WITHOUT --check -> changing files")
         args.append("--check-only")
+    elif state.verbosity > 2:
+        info("note: running WITHOUT --check -> changing files")
 
-    return _check_tool("isort", *args, verbosity=verbosity)
+    return _check_tool("isort", *args)
 
 
 @app.command()
 @with_exit_code()
-def mypy(directory: T_directory = None, verbosity: Verbosity = DEFAULT_VERBOSITY) -> int:
+def mypy(directory: T_directory = None) -> int:
     """
     Runs the mypy static type checker.
 
     Args:
         directory: where to run mypy on (default is current dir)
-        verbosity: level of detail to print out (1 - 3)
+
     """
-    config = get_su6_config(directory=directory, verbosity=verbosity)
-    return _check_tool("mypy", config.directory, verbosity=verbosity)
+    config = state.update_config(directory=directory)
+    return _check_tool("mypy", config.directory)
 
 
 @app.command()
 @with_exit_code()
-def bandit(directory: T_directory = None, verbosity: Verbosity = DEFAULT_VERBOSITY) -> int:
+def bandit(directory: T_directory = None) -> int:
     """
     Runs the bandit security checker.
 
     Args:
         directory: where to run bandit on (default is current dir)
-        verbosity: level of detail to print out (1 - 3)
-    """
-    config = get_su6_config(directory=directory, verbosity=verbosity)
 
-    return _check_tool("bandit", "-r", "-c", config.pyproject, config.directory, verbosity=verbosity)
+    """
+    config = state.update_config(directory=directory)
+    return _check_tool("bandit", "-r", "-c", config.pyproject, config.directory)
 
 
 @app.command()
 @with_exit_code()
-def pydocstyle(directory: T_directory = None, verbosity: Verbosity = DEFAULT_VERBOSITY) -> int:
+def pydocstyle(directory: T_directory = None) -> int:
     """
     Runs the pydocstyle docstring checker.
 
     Args:
         directory: where to run pydocstyle on (default is current dir)
-        verbosity: level of detail to print out (1 - 3)
-    """
-    config = get_su6_config(directory=directory, verbosity=verbosity)
 
-    return _check_tool("pydocstyle", config.directory, verbosity=verbosity)
+    """
+    config = state.update_config(directory=directory)
+    return _check_tool("pydocstyle", config.directory)
+
+
+@app.command()
+@with_exit_code()
+def pytest(
+    directory: T_directory = None, html: bool = False, json: bool = False, coverage: int = None
+) -> int:  # pragma: no cover
+    """
+    Runs all pytests.
+
+    Args:
+        directory: where to run pytests on (default is current dir)
+        html: generate HTML coverage output?
+        json: generate JSON coverage output?
+        coverage: threshold for coverage (in %)
+
+    Example:
+        > su6 pytest --coverage 50
+        if any checks fail: exit 1 and red circle
+        if all checks pass but coverage is less than 50%: exit 1, green circle for pytest and red for coverage
+        if all check pass and coverage is at least 50%: exit 0, green circle for pytest and green for coverage
+
+        if --coverage is not passed, there will be no circle for coverage.
+    """
+    config = state.update_config(directory=directory, coverage=coverage)
+
+    args = ["--cov", config.directory]
+
+    if config.coverage:
+        # json output required!
+        json = True
+
+    if html:
+        args.extend(["--cov-report", "html"])
+
+    if json:
+        args.extend(["--cov-report", "json"])
+
+    exit_code = _check_tool("pytest", *args)
+
+    if config.coverage:
+        with open("coverage.json") as f:
+            data = json_load(f)
+            percent_covered = round(data["totals"]["percent_covered"])
+
+        # if actual coverage is less than the the threshold, exit code should be success (0)
+        exit_code = percent_covered < config.coverage
+        circle = RED_CIRCLE if exit_code else GREEN_CIRCLE
+        print(circle, "coverage")
+
+    return exit_code
 
 
 @app.command(name="all")
 @with_exit_code()
-def check_all(
-    directory: T_directory = None, ignore_uninstalled: bool = False, verbosity: Verbosity = DEFAULT_VERBOSITY
-) -> bool:
+def check_all(directory: T_directory = None, ignore_uninstalled: bool = False, coverage: float = None) -> bool:
     """
     Run all available checks.
 
     Args:
         directory: where to run the tools on (default is current dir)
         ignore_uninstalled: use --ignore-uninstalled to skip exit code 127 (command not found)
-        verbosity: level of detail to print out (1 - 3)
-    """
-    config = get_su6_config(directory=directory, verbosity=verbosity)
+        coverage: pass to pytest()
 
+    """
+    config = state.update_config(directory=directory)
     ignored_exit_codes = set()
     if ignore_uninstalled:
         ignored_exit_codes.add(EXIT_CODE_COMMAND_NOT_FOUND)
 
-    tools = config.determine_which_to_run([ruff, black, mypy, bandit, isort, pydocstyle])
+    tools = config.determine_which_to_run([ruff, black, mypy, bandit, isort, pydocstyle, pytest])
 
-    exit_codes = [tool(directory, verbosity=verbosity, _suppress=True, _ignore=ignored_exit_codes) for tool in tools]
+    exit_codes = []
+    for tool in tools:
+        a = [directory]
+        kw = dict(_suppress=True, _ignore=ignored_exit_codes)
+
+        if tool is pytest:  # pragma: no cover
+            kw["coverage"] = coverage
+
+        exit_codes.append(tool(*a, **kw))
 
     return any(exit_codes)
 
 
 @app.command(name="fix")
 @with_exit_code()
-def do_fix(
-    directory: T_directory = None, ignore_uninstalled: bool = False, verbosity: Verbosity = DEFAULT_VERBOSITY
-) -> bool:
+def do_fix(directory: T_directory = None, ignore_uninstalled: bool = False) -> bool:
     """
     Do everything that's safe to fix (so not ruff because that may break semantics).
 
     Args:
         directory: where to run the tools on (default is current dir)
         ignore_uninstalled: use --ignore-uninstalled to skip exit code 127 (command not found)
-        verbosity: level of detail to print out (1 - 3)
+
     """
-    config = get_su6_config(directory=directory, verbosity=verbosity)
+    config = state.update_config(directory=directory)
 
     ignored_exit_codes = set()
     if ignore_uninstalled:
@@ -213,12 +265,25 @@ def do_fix(
 
     tools = config.determine_which_to_run([black, isort])
 
-    exit_codes = [
-        tool(directory, fix=True, verbosity=verbosity, _suppress=True, _ignore=ignored_exit_codes) for tool in tools
-    ]
+    exit_codes = [tool(directory, fix=True, _suppress=True, _ignore=ignored_exit_codes) for tool in tools]
 
     return any(exit_codes)
 
 
-if __name__ == "__main__":
+@app.callback()
+def main(config: str = None, verbosity: Verbosity = DEFAULT_VERBOSITY) -> None:
+    """
+    This callback will run before every command, setting the right global flags.
+
+    Args:
+        config: path to a different config toml file
+        verbosity: level of detail to print out (1 - 3)
+
+    Todo:
+        - add --format option for json
+    """
+    state.load_config(config_file=config, verbosity=verbosity)
+
+
+if __name__ == "__main__":  # pragma: no cover
     app()

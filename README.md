@@ -71,6 +71,13 @@ The following checkers are supported:
 - functionality: docstring checker
 - pypi: [pydocstyle](https://pypi.org/project/pydocstyle/)
 
+### pytest
+
+- install: `pip install su6[pytest]`
+- use: `su6 pytest`
+- functionality: tester with coverage
+- pypi: [pytest](https://pypi.org/project/pytest/), [pytest-cov](https://pypi.org/project/pytest-cov/)
+
 ## Usage
 
 ```console
@@ -78,15 +85,21 @@ su6 --help
 # or, easiest to start:
 su6 all
 # usual signature:
-su6 <subcommand> [directory] [--verbosity=1|2|3]
+su6 [--verbosity=1|2|3] [--config=...] <subcommand> [directory]
 ```
 
 where `subcommand` is `all` or one of the available checkers;  
-`directory` is the location you want to run the scans (default is current directory);  
 `verbosity` indicates how much information you want to see (default is '2').  
+`config` allows you to select a different `.toml` file (default is `pyproject.toml`).  
+`directory` is the location you want to run the scans (default is current directory);  
 In the case of `black` and `isort`, another optional parameter `--fix` can be passed.
 This will allow the tools to do the suggested changes (if applicable).
-Running `su6 fix` will run both these tools with the `--fix` flag.
+Running `su6 fix` will run both these tools with the `--fix` flag.  
+For `pytest`, `--json`, `--html` and `--coverage <int>` are supported. The latter can also be configured in the
+pyproject.toml (see ['Configuration'](#configuration)).
+The first two arguments can be used to control the output format of `pytest --cov`. Both options can be used at the same
+time. The `--coverage` flag can be used to set a threshold for code coverage %. If the coverage is less than this
+threshold, the check will fail.
 
 ### Configuration
 
@@ -98,6 +111,7 @@ Currently, the following keys are supported:
 directory = "." # string path to the directory on which to run all tools, e.g. 'src'
 include = [] # list of checks to run (when calling `su6 all`), e.g. ['black', 'mypy']
 exclude = [] # list of checks to skip (when calling `su6 all`), e.g. ['bandit']
+coverage = 100 # int threshold for pytest coverage 
 ```
 
 All keys are optional. Note that if you have both an `include` as well as an `exclude`, all the tools in `include` will
