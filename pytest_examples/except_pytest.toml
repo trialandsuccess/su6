@@ -1,106 +1,8 @@
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
-[project]
-name = "su6"
-dynamic = ["version"]
-description = 'Python cli tool to use tools for some common code quality checks (opinionated)'
-readme = "README.md"
-requires-python = ">=3.11"
-license = "MIT"
-keywords = []
-authors = [
-    { name = "Robin van der Noord", email = "robinvandernoord@gmail.com" },
-]
-classifiers = [
-    "Development Status :: 4 - Beta",
-    "Programming Language :: Python",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: Implementation :: CPython",
-    "Programming Language :: Python :: Implementation :: PyPy",
-]
-dependencies = [
-    "typer[all]",
-    "plumbum",
-    "black", # for 'find_pyproject_toml'
-    "typeguard",  # for check_type, used with parsing pyproject.toml
-]
-
-[template.plugins.default]
-src-layout = true
-
-[project.optional-dependencies]
-all = [
-    "black",
-    "mypy",
-    "ruff",
-    "bandit",
-    "isort",
-    "pydocstyle",
-    "pytest",
-]
-
-black = [
-    "black"
-]
-
-mypy = [
-    "mypy"
-]
-
-ruff = [
-    "ruff"
-]
-
-bandit = [
-    "bandit"
-]
-
-isort = [
-    "isort"
-]
-
-pydocstyle = [
-    "pydocstyle"
-]
-
-pytest = [
-    "pytest",
-    "pytest-cov",
-]
-
-dev = [
-    "hatch",
-    "python-semantic-release",
-]
-
-[project.scripts]
-su6 = "su6.cli:app"
-
-[project.urls]
-Documentation = "https://github.com/robinvandernoord/su6-checker#readme"
-Issues = "https://github.com/robinvandernoord/su6-checker/issues"
-Source = "https://github.com/robinvandernoord/su6-checker"
-
-[tool.hatch.version]
-path = "src/su6/__about__.py"
-
-[tool.semantic_release]
-branch = "master"
-version_variable = "src/su6/__about__.py:__version__"
-change_log = "CHANGELOG.md"
-upload_to_repository = false
-upload_to_release = false
-build_command = "hatch build"
-
-### required in every su6 pyproject: ###
 [tool.su6]
-directory = "src"
-include = []
-exclude = []
-coverage = 99
+exclude = ['pytest']
+
+### BELOW IS COPIED FROM pyproject.toml,
+# because some libraries will see --config in the cli and try to parse that toml!
 
 [tool.black]
 target-version = ["py311"]
@@ -174,8 +76,3 @@ add_ignore = [
 #[tool.setuptools.packages.find]
 ## look nowhere for any code to 'build' since this is just used to manage (dev) dependencies
 #where = []
-
-[tool.pytest.ini_options]
-pythonpath = [
-  "src",
-]

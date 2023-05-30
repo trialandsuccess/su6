@@ -8,8 +8,9 @@ import operator
 import os
 import sys
 import tomllib
+import types
 import typing
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 import black.files
 import typer
@@ -58,7 +59,7 @@ def with_exit_code() -> T_Outer_Wrapper:
             if (retcode := int(func(*args, **kwargs))) and not _suppress:
                 raise typer.Exit(code=retcode)
 
-            if retcode in _ignore_exit_codes:
+            if retcode in _ignore_exit_codes:  # pragma: no cover
                 # there is an error code, but we choose to ignore it -> return 0
                 return EXIT_CODE_SUCCESS
 
@@ -161,12 +162,15 @@ C = typing.TypeVar("C", bound=T_Command)
 class Config:
     """
     Used as typed version of the [tool.su6] part of pyproject.toml.
+
+    Also accessible via state.config
     """
 
     directory: str = "."
     pyproject: str = "pyproject.toml"
     include: typing.Optional[list[str]] = None
     exclude: typing.Optional[list[str]] = None
+    coverage: typing.Optional[float] = None  # only relevant for pytest
 
     def determine_which_to_run(self, options: list[C]) -> list[C]:
         """
@@ -180,7 +184,10 @@ class Config:
         return options
 
 
-def check_type(value: typing.Any, expected_type: type) -> bool:
+T_typelike: typing.TypeAlias = type | types.UnionType | types.UnionType
+
+
+def check_type(value: typing.Any, expected_type: T_typelike) -> bool:
     """
     Given a variable, check if it matches 'expected_type' (which can be a Union, parameterized generic etc.).
 
@@ -232,6 +239,9 @@ def _ensure_types(data: dict[str, T], annotations: dict[str, type]) -> dict[str,
     final = {}
     for key, _type in annotations.items():
         compare = data.get(key)
+        if compare is None:
+            # skip!
+            continue
         if not check_type(compare, _type):
             raise ConfigError(key, value=compare, expected_type=_type)
 
@@ -239,7 +249,7 @@ def _ensure_types(data: dict[str, T], annotations: dict[str, type]) -> dict[str,
     return final
 
 
-def _get_su6_config(overwrites: dict[str, typing.Any]) -> typing.Optional[Config]:
+def _get_su6_config(overwrites: dict[str, typing.Any], toml_path: str = None) -> typing.Optional[Config]:
     """
     Parse the users pyproject.toml (found using black's logic) and extract the tool.su6 part.
 
@@ -248,8 +258,12 @@ def _get_su6_config(overwrites: dict[str, typing.Any]) -> typing.Optional[Config
 
     Args:
         overwrites: cli arguments can overwrite the config toml.
+        toml_path: by default, black will search for a relevant pyproject.toml.
+                    If a toml_path is provided, that file will be used instead.
     """
-    toml_path = black.files.find_pyproject_toml((os.getcwd(),))
+    if toml_path is None:
+        toml_path = black.files.find_pyproject_toml((os.getcwd(),))
+
     if not toml_path:
         return None
 
@@ -265,12 +279,15 @@ def _get_su6_config(overwrites: dict[str, typing.Any]) -> typing.Optional[Config
     return Config(**su6_config_dict)
 
 
-def get_su6_config(verbosity: Verbosity = DEFAULT_VERBOSITY, **overwrites: typing.Any) -> typing.Optional[Config]:
+def get_su6_config(
+    verbosity: Verbosity = DEFAULT_VERBOSITY, toml_path: str = None, **overwrites: typing.Any
+) -> typing.Optional[Config]:
     """
     Load the relevant pyproject.toml config settings.
 
     Args:
         verbosity: if something goes wrong, level 3+ will show a warning and 4+ will raise the exception.
+        toml_path: --config can be used to use a different file than ./pyproject.toml
         overwrites (dict[str, typing.Any): cli arguments can overwrite the config toml.
                 If a value is None, the key is not overwritten.
     """
@@ -278,7 +295,7 @@ def get_su6_config(verbosity: Verbosity = DEFAULT_VERBOSITY, **overwrites: typin
     overwrites = {k: v for k, v in overwrites.items() if v is not None}
 
     try:
-        if config := _get_su6_config(overwrites):
+        if config := _get_su6_config(overwrites, toml_path=toml_path):
             return config
         raise ValueError("Falsey config?")
     except Exception as e:
@@ -320,7 +337,7 @@ def log_command(command: LocalCommand, args: typing.Iterable[str]) -> None:
     info(f"> {command[*args]}")
 
 
-def log_cmd_output(stdout: str, stderr: str) -> None:
+def log_cmd_output(stdout: str = "", stderr: str = "") -> None:
     """
     Print stdout in yellow and stderr in red.
     """
@@ -329,3 +346,50 @@ def log_cmd_output(stdout: str, stderr: str) -> None:
     warn(stdout)
     # probably more important error stuff, so stderr goes last:
     danger(stderr)
+
+
+@dataclass()
+class ApplicationState:
+    """
+    Application State - global user defined variables.
+
+    State contains generic variables passed BEFORE the subcommand (so --verbosity, --config, ...),
+    whereas Config contains settings from the config toml file, updated with arguments AFTER the subcommand
+    (e.g. su6 subcommand <directory> --flag), directory and flag will be updated in the config and not the state
+    """
+
+    verbosity: Verbosity = DEFAULT_VERBOSITY
+    config_file: str = None  # will be filled with black's search logic
+    config: Config = None
+
+    def load_config(self, **overwrites: typing.Any) -> Config:
+        """
+        Load the su6 config from pyproject.toml (or other config_file) with optional overwriting settings.
+        """
+        if "verbosity" in overwrites:
+            self.verbosity = overwrites["verbosity"]
+        if "config_file" in overwrites:
+            self.config_file = overwrites.pop("config_file")
+
+        self.config = get_su6_config(toml_path=self.config_file, **overwrites)
+        return self.config
+
+    def update_config(self, **values: typing.Any) -> Config:
+        """
+        Overwrite default/toml settings with cli values.
+
+        Example:
+            `config = state.update_config(directory='src')`
+            This will update the state's config and return the same object with the updated settings.
+        """
+        if self.config is None:
+            # not loaded yet!
+            self.load_config()
+
+        values = {k: v for k, v in values.items() if v is not None}
+        # replace is dataclass' update function
+        self.config = replace(self.config, **values)
+        return self.config
+
+
+state = ApplicationState()

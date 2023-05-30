@@ -1,0 +1,2 @@
+[tool.su6]
+exclude = ["ruff", "mypy", "bandit", "isort", "pydocstyle", "pytest"]
