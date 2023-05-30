@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.5.2 (2023-05-30)
+### Documentation
+* **readme:** Add supported args for each checker in 'use' ([`c091d2b`](https://github.com/robinvandernoord/su6-checker/commit/c091d2b21fa90ee0f2383d9bb101c327b0fd8036))
+
 ## v0.5.1 (2023-05-30)
 ### Fix
 * **cov:** Forgot to add pytest-cov as dependency for 'all' ([`fef9b41`](https://github.com/robinvandernoord/su6-checker/commit/fef9b41543ecce11b8f157be8e7a5c5f59d6f248))
