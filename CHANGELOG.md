@@ -2,6 +2,16 @@
 
 <!--next-version-placeholder-->
 
+## v0.6.0 (2023-05-30)
+### Feature
+* **format:** Allow `--format json` ([`3c958e5`](https://github.com/robinvandernoord/su6-checker/commit/3c958e5bb8dbfb79f76d3614385c062286429af4))
+
+### Fix
+* **json:** Format=json did not actually output json... Also update tests ([`df5fd41`](https://github.com/robinvandernoord/su6-checker/commit/df5fd411b8336e046165c6893777ed9abf539ae0))
+
+### Documentation
+* **format:** Allow `--format json` ([`29c5d0b`](https://github.com/robinvandernoord/su6-checker/commit/29c5d0b85e7e2c2bed2f6067ae0477e91256e8fc))
+
 ## v0.5.3 (2023-05-30)
 ### Fix
 * **mypy:** Stricter rules regarding None ( but still allow implicit in function args >:( ) ([`46ff1d4`](https://github.com/robinvandernoord/su6-checker/commit/46ff1d4850074045c20f19d7135bb95d200a835b))
