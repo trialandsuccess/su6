@@ -91,7 +91,7 @@ def black(directory: T_directory = None, fix: bool = False) -> int:
     """
     config = state.update_config(directory=directory)
 
-    args = [config.directory, "--exclude=venv.+|.+\.bak"]
+    args = [config.directory, r"--exclude=venv.+|.+\.bak"]
     if not fix:
         args.append("--check")
     elif state.verbosity > 2:

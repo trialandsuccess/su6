@@ -25,7 +25,7 @@ dependencies = [
     "typer[all]",
     "plumbum",
     "black", # for 'find_pyproject_toml'
-    "typeguard",  # for check_type, used with parsing pyproject.toml
+    "typeguard", # for check_type, used with parsing pyproject.toml
 ]
 
 [template.plugins.default]
@@ -121,9 +121,12 @@ extend-exclude = '''
 python_version = "3.11"
 
 # `some: int = None` looks nicer than `some: int | None = None` and pycharm still understands it
-no_implicit_optional = false
+no_implicit_optional = false  # I guess 'strict_optional' should be true, but disable this one because it's double!
 # same as above (thrown if no_implicit_optional = False)
-strict_optional = false
+# ACTUALLY: not the same! Setting strict_optional = false may miss some type errors like
+# 'Item "None" of "Optional" has no attribute "lower"'
+# 'strict_optional' complains more for class properties and 'no_implicit_optional' for function arguments
+# strict_optional = false
 # 3rd party packages may not be typed, that's not my fault!
 ignore_missing_imports = true
 # kinda hypocritical to disable Optional and still enable strict, but I do agree with some other strict rules.
@@ -178,5 +181,5 @@ add_ignore = [
 
 [tool.pytest.ini_options]
 pythonpath = [
-  "src",
+    "src",
 ]

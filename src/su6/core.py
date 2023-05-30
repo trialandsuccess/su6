@@ -184,6 +184,8 @@ class Config:
         return options
 
 
+MaybeConfig: typing.TypeAlias = typing.Optional[Config]
+
 T_typelike: typing.TypeAlias = type | types.UnionType | types.UnionType
 
 
@@ -236,7 +238,7 @@ def _ensure_types(data: dict[str, T], annotations: dict[str, type]) -> dict[str,
 
     If an annotated key in missing from data, it will be filled with None for convenience.
     """
-    final = {}
+    final: dict[str, T | None] = {}
     for key, _type in annotations.items():
         compare = data.get(key)
         if compare is None:
@@ -249,7 +251,7 @@ def _ensure_types(data: dict[str, T], annotations: dict[str, type]) -> dict[str,
     return final
 
 
-def _get_su6_config(overwrites: dict[str, typing.Any], toml_path: str = None) -> typing.Optional[Config]:
+def _get_su6_config(overwrites: dict[str, typing.Any], toml_path: str = None) -> MaybeConfig:
     """
     Parse the users pyproject.toml (found using black's logic) and extract the tool.su6 part.
 
@@ -279,9 +281,7 @@ def _get_su6_config(overwrites: dict[str, typing.Any], toml_path: str = None) ->
     return Config(**su6_config_dict)
 
 
-def get_su6_config(
-    verbosity: Verbosity = DEFAULT_VERBOSITY, toml_path: str = None, **overwrites: typing.Any
-) -> typing.Optional[Config]:
+def get_su6_config(verbosity: Verbosity = DEFAULT_VERBOSITY, toml_path: str = None, **overwrites: typing.Any) -> Config:
     """
     Load the relevant pyproject.toml config settings.
 
@@ -359,8 +359,8 @@ class ApplicationState:
     """
 
     verbosity: Verbosity = DEFAULT_VERBOSITY
-    config_file: str = None  # will be filled with black's search logic
-    config: Config = None
+    config_file: typing.Optional[str] = None  # will be filled with black's search logic
+    config: MaybeConfig = None
 
     def load_config(self, **overwrites: typing.Any) -> Config:
         """
@@ -384,11 +384,13 @@ class ApplicationState:
         """
         if self.config is None:
             # not loaded yet!
-            self.load_config()
+            existing_config = self.load_config()
+        else:
+            existing_config = self.config
 
         values = {k: v for k, v in values.items() if v is not None}
         # replace is dataclass' update function
-        self.config = replace(self.config, **values)
+        self.config = replace(existing_config, **values)
         return self.config
 
 
