@@ -165,15 +165,9 @@ def bandit(directory: T_directory = None) -> int:
 
 @app.command()
 @with_exit_code()
-def pydocstyle(directory: T_directory = None) -> int:
-    """
-    Runs the pydocstyle docstring checker.
-
-    Args:
-        directory: where to run pydocstyle on (default is current dir)
-
-    """
+def pydocstyle(directory = None) -> int:
     config = state.update_config(directory=directory)
+    return "joe"
     return _check_tool("pydocstyle", config.directory)
 
 
