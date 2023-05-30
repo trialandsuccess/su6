@@ -32,49 +32,49 @@ The following checkers are supported:
 ### ruff
 
 - install: `pip install su6[ruff]`
-- use: `su6 ruff`
+- use: `su6 ruff [directory]`
 - functionality: linter
 - pypi: [ruff](https://pypi.org/project/ruff/)
 
 ### black
 
 - install: `pip install su6[black]`
-- use: `su6 black`, `su6 black --fix`
+- use: `su6 black [directory] [--fix]`
 - functionality: formatter
 - pypi: [black](https://pypi.org/project/black/)
 
 ### mypy
 
 - install: `pip install su6[mypy]`
-- use: `su6 mypy`
+- use: `su6 mypy [directory]`
 - functionality: static type checker
 - pypi: [mypy](https://pypi.org/project/mypy/)
 
 ### bandit
 
 - install: `pip install su6[bandit]`
-- use: `su6 bandit`
+- use: `su6 bandit [directory]`
 - functionality: security linter
 - pypi: [bandit](https://pypi.org/project/bandit/)
 
 ### isort
 
 - install: `pip install su6[isort]`
-- use: `su6 isort`, `su6 isort --fix`
+- use: `su6 isort [directory] [--fix]`
 - functionality: import sorter
 - pypi: [isort](https://pypi.org/project/isort/)
 
 ### pydocstyle
 
 - install: `pip install su6[pydocstyle]`
-- use: `su6 pydocstyle`
+- use: `su6 pydocstyle [directory]`
 - functionality: docstring checker
 - pypi: [pydocstyle](https://pypi.org/project/pydocstyle/)
 
 ### pytest
 
 - install: `pip install su6[pytest]`
-- use: `su6 pytest`
+- use: `su6 pytest [directory] [--coverage <int>] [--json] [--html]`
 - functionality: tester with coverage
 - pypi: [pytest](https://pypi.org/project/pytest/), [pytest-cov](https://pypi.org/project/pytest-cov/)
 
@@ -85,7 +85,7 @@ su6 --help
 # or, easiest to start:
 su6 all
 # usual signature:
-su6 [--verbosity=1|2|3] [--config=...] <subcommand> [directory]
+su6 [--verbosity=1|2|3] [--config=...] <subcommand> [directory] [...specific options]
 ```
 
 where `subcommand` is `all` or one of the available checkers;  
