@@ -222,10 +222,23 @@ def test_json_format():
         "all",
         code_file,
     ]
-    result = runner.invoke(app, args)
+    result1 = runner.invoke(app, args)
 
-    data = json.loads(result.stdout.strip())
-    assert data == {"black": True}
+    args = [
+        "--config",
+        str(EXAMPLES_PATH / "only_black.toml"),
+        "--verbosity",
+        "3",
+        "--format",
+        "json",
+        "black",
+        code_file,
+    ]
+    result2 = runner.invoke(app, args)
+
+    data1 = json.loads(result1.stdout.strip())
+    data2 = json.loads(result2.stdout.strip())
+    assert data1 == data2 == {"black": True}
 
     args = [
         "--config",
