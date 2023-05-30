@@ -85,12 +85,13 @@ su6 --help
 # or, easiest to start:
 su6 all
 # usual signature:
-su6 [--verbosity=1|2|3] [--config=...] <subcommand> [directory] [...specific options]
+su6 [--verbosity=1|2|3] [--config=...] [--format=text|json] <subcommand> [directory] [...specific options]
 ```
 
 where `subcommand` is `all` or one of the available checkers;  
 `verbosity` indicates how much information you want to see (default is '2').  
 `config` allows you to select a different `.toml` file (default is `pyproject.toml`).  
+`format` allows you to get a JSON output instead of the textual traffic lights (default is `text`).  
 `directory` is the location you want to run the scans (default is current directory);  
 In the case of `black` and `isort`, another optional parameter `--fix` can be passed.
 This will allow the tools to do the suggested changes (if applicable).
