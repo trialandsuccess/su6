@@ -11,6 +11,7 @@ from plumbum.commands.processes import CommandNotFound, ProcessExecutionError
 from rich import print
 
 from .core import (
+    DEFAULT_BADGE,
     DEFAULT_FORMAT,
     DEFAULT_VERBOSITY,
     EXIT_CODE_COMMAND_NOT_FOUND,
@@ -235,6 +236,10 @@ def pytest(
             print(circle, "coverage")
 
         if config.badge:
+            if not isinstance(config.badge, str):
+                # it's still True for some reason?
+                config.badge = DEFAULT_BADGE
+
             with contextlib.suppress(FileNotFoundError):
                 os.remove(config.badge)
 
