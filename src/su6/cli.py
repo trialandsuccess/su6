@@ -8,6 +8,7 @@ from plumbum.commands.processes import CommandNotFound, ProcessExecutionError
 from rich import print
 
 from .core import (
+    DEFAULT_FORMAT,
     DEFAULT_VERBOSITY,
     EXIT_CODE_COMMAND_NOT_FOUND,
     EXIT_CODE_ERROR,
@@ -15,7 +16,9 @@ from .core import (
     GREEN_CIRCLE,
     RED_CIRCLE,
     YELLOW_CIRCLE,
+    Format,
     Verbosity,
+    dump_tools_with_results,
     info,
     log_cmd_output,
     log_command,
@@ -32,29 +35,36 @@ def _check_tool(tool: str, *args: str) -> int:
     Abstraction to run one of the cli checking tools and process its output.
 
     Args:
-        tool: the (bash) name of the tool to run
-         . \
-            Level 1 (quiet) will only print a colored circle indicating success/failure; \
-            Level 2 (normal) will also print stdout/stderr; \
-            Level 3 (verbose) will also print the executed command with its arguments.
+        tool: the (bash) name of the tool to run.
+        args: cli args to pass to the cli bash tool
     """
     try:
         cmd = local[tool]
 
         if state.verbosity >= 3:
             log_command(cmd, args)
+
         result = cmd(*args)
-        print(GREEN_CIRCLE, tool)
+
+        if state.format == "text":
+            print(GREEN_CIRCLE, tool)
+
         if state.verbosity > 2:  # pragma: no cover
             log_cmd_output(result)
+
         return EXIT_CODE_SUCCESS  # success
     except CommandNotFound:
         if state.verbosity > 2:  # pragma: no cover
             warn(f"Tool {tool} not installed!")
-        print(YELLOW_CIRCLE, tool)
+
+        if state.format == "text":
+            print(YELLOW_CIRCLE, tool)
+
         return EXIT_CODE_COMMAND_NOT_FOUND  # command not found
     except ProcessExecutionError as e:
-        print(RED_CIRCLE, tool)
+        if state.format == "text":
+            print(RED_CIRCLE, tool)
+
         if state.verbosity > 1:
             log_cmd_output(e.stdout, e.stderr)
         return EXIT_CODE_ERROR  # general error
@@ -209,7 +219,8 @@ def pytest(
         # if actual coverage is less than the the threshold, exit code should be success (0)
         exit_code = percent_covered < config.coverage
         circle = RED_CIRCLE if exit_code else GREEN_CIRCLE
-        print(circle, "coverage")
+        if state.format == "text":
+            print(circle, "coverage")
 
     return exit_code
 
@@ -243,6 +254,9 @@ def check_all(directory: T_directory = None, ignore_uninstalled: bool = False, c
 
         exit_codes.append(tool(*a, **kw))
 
+    if state.format == "json":
+        dump_tools_with_results(tools, exit_codes)
+
     return any(exit_codes)
 
 
@@ -267,22 +281,24 @@ def do_fix(directory: T_directory = None, ignore_uninstalled: bool = False) -> b
 
     exit_codes = [tool(directory, fix=True, _suppress=True, _ignore=ignored_exit_codes) for tool in tools]
 
+    if state.format == "json":
+        dump_tools_with_results(tools, exit_codes)
+
     return any(exit_codes)
 
 
 @app.callback()
-def main(config: str = None, verbosity: Verbosity = DEFAULT_VERBOSITY) -> None:
+def main(config: str = None, verbosity: Verbosity = DEFAULT_VERBOSITY, format: Format = DEFAULT_FORMAT) -> None:
     """
     This callback will run before every command, setting the right global flags.
 
     Args:
         config: path to a different config toml file
         verbosity: level of detail to print out (1 - 3)
+        format: output format
 
-    Todo:
-        - add --format option for json
     """
-    state.load_config(config_file=config, verbosity=verbosity)
+    state.load_config(config_file=config, verbosity=verbosity, format=format)
 
 
 if __name__ == "__main__":  # pragma: no cover

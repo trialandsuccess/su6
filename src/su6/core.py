@@ -37,6 +37,21 @@ T_Inner_Wrapper: typing.TypeAlias = typing.Callable[..., int]
 T_Outer_Wrapper: typing.TypeAlias = typing.Callable[[T_Command], T_Inner_Wrapper]
 
 
+def dump_tools_with_results(tools: list[T_Command], results: list[int | bool]) -> None:
+    """
+    When using format = json, dump the success of each tool in tools (-> exit code == 0).
+
+    This method is used in `all` and `fix` (with a list of tools) and in 'with_exit_code' (with one tool).
+    'with_exit_code' does NOT use this method if the return value was a bool, because that's the return value of
+    'all' and 'fix' and those already dump a dict output themselves.
+
+    Args:
+        tools: list of commands that ran
+        results: list of return values from these commands
+    """
+    print({tool.__name__: not result for tool, result in zip(tools, results)})
+
+
 def with_exit_code() -> T_Outer_Wrapper:
     """
     Convert the return value of an app.command (bool or int) to an typer Exit with return code, \
@@ -56,7 +71,15 @@ def with_exit_code() -> T_Outer_Wrapper:
             _suppress = kwargs.pop("_suppress", False)
             _ignore_exit_codes = kwargs.pop("_ignore", set())
 
-            if (retcode := int(func(*args, **kwargs))) and not _suppress:
+            result = func(*args, **kwargs)
+            if state.format == "json" and not _suppress and not isinstance(result, bool):
+                # isinstance(True, int) -> True so not isinstance(result, bool)
+                # print {tool: success}
+                # but only if a retcode is returned,
+                # otherwise (True, False) assume the function handled printing itself.
+                dump_tools_with_results([func], [result])
+
+            if (retcode := int(result)) and not _suppress:
                 raise typer.Exit(code=retcode)
 
             if retcode in _ignore_exit_codes:  # pragma: no cover
@@ -154,6 +177,37 @@ class Verbosity(enum.Enum):
 Verbosity_Comparable = Verbosity | str | int
 
 DEFAULT_VERBOSITY = Verbosity.normal
+
+
+class Format(enum.Enum):
+    """
+    Options for su6 --format.
+    """
+
+    text = "text"
+    json = "json"
+
+    def __eq__(self, other: object) -> bool:
+        """
+        Magic method for self == other.
+
+        'eq' is a special case because 'other' MUST be object according to mypy
+        """
+        if other is Ellipsis or other is inspect._empty:
+            # both instances of object; can't use Ellipsis or type(ELlipsis) = ellipsis as a type hint in mypy
+            # special cases where Typer instanciates its cli arguments,
+            # return False or it will crash
+            return False
+        return self.value == other
+
+    def __hash__(self) -> int:
+        """
+        Magic method for `hash(self)`, also required for Typer to work.
+        """
+        return hash(self.value)
+
+
+DEFAULT_FORMAT = Format.text
 
 C = typing.TypeVar("C", bound=T_Command)
 
@@ -313,21 +367,21 @@ def info(*args: str) -> None:
     """
     'print' but with blue text.
     """
-    print(f"[blue]{' '.join(args)}[/blue]")
+    print(f"[blue]{' '.join(args)}[/blue]", file=sys.stderr)
 
 
 def warn(*args: str) -> None:
     """
     'print' but with yellow text.
     """
-    print(f"[yellow]{' '.join(args)}[/yellow]")
+    print(f"[yellow]{' '.join(args)}[/yellow]", file=sys.stderr)
 
 
 def danger(*args: str) -> None:
     """
     'print' but with red text.
     """
-    print(f"[red]{' '.join(args)}[/red]")
+    print(f"[red]{' '.join(args)}[/red]", file=sys.stderr)
 
 
 def log_command(command: LocalCommand, args: typing.Iterable[str]) -> None:
@@ -359,6 +413,7 @@ class ApplicationState:
     """
 
     verbosity: Verbosity = DEFAULT_VERBOSITY
+    format: Format = DEFAULT_FORMAT
     config_file: typing.Optional[str] = None  # will be filled with black's search logic
     config: MaybeConfig = None
 
@@ -370,6 +425,8 @@ class ApplicationState:
             self.verbosity = overwrites["verbosity"]
         if "config_file" in overwrites:
             self.config_file = overwrites.pop("config_file")
+        if "format" in overwrites:
+            self.format = overwrites.pop("format")
 
         self.config = get_su6_config(toml_path=self.config_file, **overwrites)
         return self.config
