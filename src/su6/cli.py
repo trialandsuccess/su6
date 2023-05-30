@@ -53,8 +53,8 @@ def _check_tool(tool: str, *args: str) -> int:
             log_cmd_output(result)
 
         return EXIT_CODE_SUCCESS  # success
-    except CommandNotFound:
-        if state.verbosity > 2:  # pragma: no cover
+    except CommandNotFound:  # pragma: no cover
+        if state.verbosity > 2:
             warn(f"Tool {tool} not installed!")
 
         if state.format == "text":

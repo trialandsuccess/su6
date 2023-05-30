@@ -4,6 +4,7 @@ This file contains internal helpers used by cli.py.
 import enum
 import functools
 import inspect
+import json
 import operator
 import os
 import sys
@@ -49,7 +50,8 @@ def dump_tools_with_results(tools: list[T_Command], results: list[int | bool]) -
         tools: list of commands that ran
         results: list of return values from these commands
     """
-    print({tool.__name__: not result for tool, result in zip(tools, results)})
+    text = json.dumps({tool.__name__: not result for tool, result in zip(tools, results)})
+    print(text)
 
 
 def with_exit_code() -> T_Outer_Wrapper:

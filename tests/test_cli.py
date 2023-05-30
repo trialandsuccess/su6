@@ -1,3 +1,4 @@
+import json
 import os
 import shutil
 
@@ -6,7 +7,8 @@ from typer.testing import CliRunner
 from src.su6.cli import _check_tool, app
 from src.su6.core import EXIT_CODE_COMMAND_NOT_FOUND
 
-runner = CliRunner()
+# by default, click's cli runner mixes stdout and stderr for some reason...
+runner = CliRunner(mix_stderr=False)
 
 from ._shared import BAD_CODE, EXAMPLES_PATH, GOOD_CODE
 
@@ -113,8 +115,11 @@ def test_all_fix():
         assert result.exit_code == 1
 
         # 2. fix
-        result = runner.invoke(app, ["--verbosity", "3", "fix", fixable_code, "--ignore-uninstalled"])
+        result = runner.invoke(app, ["--verbosity", "3", "--format", "json", "fix", fixable_code, "--ignore-uninstalled"])
         assert result.exit_code == 0
+
+        data = json.loads(result.stdout)
+        assert data == {"black": True, "isort": True}
 
         # 3. assert success
         result = runner.invoke(app, ["isort", fixable_code])
@@ -138,19 +143,52 @@ def test_pydocstyle_bad():
 
 
 def test_all_good():
-    result = runner.invoke(app, ["--config", str(EXAMPLES_PATH / "except_pytest.toml"), "all", GOOD_CODE])
+    args = ["--config", str(EXAMPLES_PATH / "except_pytest.toml"), "all", GOOD_CODE]
+    result = runner.invoke(app, args)
     assert result.exit_code == 0
 
-    result = runner.invoke(app, ["--config", str(EXAMPLES_PATH / "except_pytest.toml"), "all", GOOD_CODE,
-                                 "--ignore-uninstalled"])
+    args = [
+        "--config",
+        str(EXAMPLES_PATH / "except_pytest.toml"),
+        "--format",
+        "json",
+        "all",
+        GOOD_CODE,
+        "--ignore-uninstalled",
+    ]
+
+    result = runner.invoke(app, args)
     # can't really test without having everything installed,
     # but at least we can make sure the flag doen't crash anything!
     assert result.exit_code == 0
 
+    results = json.loads(result.stdout)
+
+    assert results == {
+        "ruff": True,
+        "black": True,
+        "mypy": True,
+        "bandit": True,
+        "isort": True,
+        "pydocstyle": True,
+    }
+
 
 def test_all_bad():
-    result = runner.invoke(app, ["--config", str(EXAMPLES_PATH / "except_pytest.toml"), "all", BAD_CODE])
+    args = ["--config", str(EXAMPLES_PATH / "except_pytest.toml"), "--format", "json", "all", BAD_CODE]
+    result = runner.invoke(app, args)
     assert result.exit_code == 1
+
+    results = json.loads(result.stdout)
+
+    assert results == {
+        "ruff": False,
+        "black": False,
+        "mypy": False,
+        "bandit": False,
+        "isort": False,
+        "pydocstyle": False,
+    }
 
 
 ### test_pytest is kind of an issue since this seems to hang the first running pytest session
@@ -170,3 +208,36 @@ def test_custom_include_exclude():
 
     result = runner.invoke(app, ["--config", str(EXAMPLES_PATH / "only_mypy.toml"), "all", code_file])
     assert result.exit_code == 1
+
+
+def test_json_format():
+    code_file = str(EXAMPLES_PATH / "black_good_mypy_bad.py")
+    args = [
+        "--config",
+        str(EXAMPLES_PATH / "only_black.toml"),
+        "--verbosity",
+        "3",
+        "--format",
+        "json",
+        "all",
+        code_file,
+    ]
+    result = runner.invoke(app, args)
+
+    data = json.loads(result.stdout.strip())
+    assert data == {"black": True}
+
+    args = [
+        "--config",
+        str(EXAMPLES_PATH / "only_mypy.toml"),
+        "--verbosity",
+        "3",
+        "--format",
+        "json",
+        "all",
+        code_file,
+    ]
+    result = runner.invoke(app, args)
+
+    data = json.loads(result.stdout.strip())
+    assert data == {"mypy": False}
