@@ -2,6 +2,14 @@
 
 <!--next-version-placeholder-->
 
+## v0.5.0 (2023-05-30)
+### Feature
+* **pytest:** Add pytest with coverage options ([`979ff01`](https://github.com/robinvandernoord/su6-checker/commit/979ff01afec6ea80fbfd08d53a7002b7ec68364c))
+* **pytest:** Start adding pytest with tests, but WIP ([`27c5ccd`](https://github.com/robinvandernoord/su6-checker/commit/27c5ccde03173f1bef3deebc807445aed4c8f7e3))
+
+### Documentation
+* **readme:** Updated readme to include pytest and new flag order (--verbosity and --config BEFORE subcommand) ([`5db347c`](https://github.com/robinvandernoord/su6-checker/commit/5db347c4c562ad2b11a521ee11ed15c689d497b1))
+
 ## v0.4.0 (2023-05-28)
 ### Feature
 * **config:** Add pyproject.toml settings ([`9189844`](https://github.com/robinvandernoord/su6-checker/commit/918984467e2d5eef0db0caaa134461ce73286456))
