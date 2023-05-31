@@ -74,7 +74,7 @@ def with_exit_code() -> T_Outer_Wrapper:
             _ignore_exit_codes = kwargs.pop("_ignore", set())
 
             result = func(*args, **kwargs)
-            if state.format == "json" and not _suppress and not isinstance(result, bool):
+            if state.output_format == "json" and not _suppress and not isinstance(result, bool):
                 # isinstance(True, int) -> True so not isinstance(result, bool)
                 # print {tool: success}
                 # but only if a retcode is returned,
@@ -426,7 +426,7 @@ class ApplicationState:
     """
 
     verbosity: Verbosity = DEFAULT_VERBOSITY
-    format: Format = DEFAULT_FORMAT
+    output_format: Format = DEFAULT_FORMAT
     config_file: typing.Optional[str] = None  # will be filled with black's search logic
     config: MaybeConfig = None
 
@@ -438,8 +438,8 @@ class ApplicationState:
             self.verbosity = overwrites["verbosity"]
         if "config_file" in overwrites:
             self.config_file = overwrites.pop("config_file")
-        if "format" in overwrites:
-            self.format = overwrites.pop("format")
+        if "output_format" in overwrites:
+            self.output_format = overwrites.pop("output_format")
 
         self.config = get_su6_config(toml_path=self.config_file, **overwrites)
         return self.config
@@ -452,11 +452,7 @@ class ApplicationState:
             `config = state.update_config(directory='src')`
             This will update the state's config and return the same object with the updated settings.
         """
-        if self.config is None:
-            # not loaded yet!
-            existing_config = self.load_config()
-        else:
-            existing_config = self.config
+        existing_config = self.load_config() if self.config is None else self.config
 
         values = {k: v for k, v in values.items() if v is not None}
         # replace is dataclass' update function
