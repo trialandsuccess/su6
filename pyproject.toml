@@ -142,6 +142,20 @@ exclude = ["venv", ".bak"]
 [tool.ruff]
 target-version = "py311"
 line-length = 120
+select = [
+    "F", # pyflake error
+    "E", # pycodestyle error
+    "W", # pycodestyle warning
+    "Q", # quotes
+    "A", # builtins
+    # "C4", # comprehensions - NO: doesn't allow dict()
+    # "RET", # return - NO: annoying
+    "SIM", # simplify
+    "ARG", # unused arguments
+    # "COM", # comma's - NO: annoying
+    # "PTH", # use pathlib - NO: annoying
+    "RUF", # ruff rules
+]
 unfixable = [
     # Don't touch unused imports
     "F401",

@@ -50,7 +50,7 @@ def _check_tool(tool: str, *args: str) -> int:
 
         result = cmd(*args)
 
-        if state.format == "text":
+        if state.output_format == "text":
             print(GREEN_CIRCLE, tool)
 
         if state.verbosity > 2:  # pragma: no cover
@@ -61,12 +61,12 @@ def _check_tool(tool: str, *args: str) -> int:
         if state.verbosity > 2:
             warn(f"Tool {tool} not installed!")
 
-        if state.format == "text":
+        if state.output_format == "text":
             print(YELLOW_CIRCLE, tool)
 
         return EXIT_CODE_COMMAND_NOT_FOUND  # command not found
     except ProcessExecutionError as e:
-        if state.format == "text":
+        if state.output_format == "text":
             print(RED_CIRCLE, tool)
 
         if state.verbosity > 1:
@@ -232,7 +232,7 @@ def pytest(
         # if actual coverage is less than the the threshold, exit code should be success (0)
         exit_code = percent_covered < config.coverage
         circle = RED_CIRCLE if exit_code else GREEN_CIRCLE
-        if state.format == "text":
+        if state.output_format == "text":
             print(circle, "coverage")
 
         if config.badge:
@@ -283,7 +283,7 @@ def check_all(
 
         exit_codes.append(tool(*a, **kw))
 
-    if state.format == "json":
+    if state.output_format == "json":
         dump_tools_with_results(tools, exit_codes)
 
     return any(exit_codes)
@@ -310,24 +310,28 @@ def do_fix(directory: T_directory = None, ignore_uninstalled: bool = False) -> b
 
     exit_codes = [tool(directory, fix=True, _suppress=True, _ignore=ignored_exit_codes) for tool in tools]
 
-    if state.format == "json":
+    if state.output_format == "json":
         dump_tools_with_results(tools, exit_codes)
 
     return any(exit_codes)
 
 
 @app.callback()
-def main(config: str = None, verbosity: Verbosity = DEFAULT_VERBOSITY, format: Format = DEFAULT_FORMAT) -> None:
+def main(
+    config: str = None,
+    verbosity: Verbosity = DEFAULT_VERBOSITY,
+    output_format: typing.Annotated[Format, typer.Option("--format")] = DEFAULT_FORMAT,
+) -> None:
     """
     This callback will run before every command, setting the right global flags.
 
     Args:
         config: path to a different config toml file
         verbosity: level of detail to print out (1 - 3)
-        format: output format
+        output_format: output format
 
     """
-    state.load_config(config_file=config, verbosity=verbosity, format=format)
+    state.load_config(config_file=config, verbosity=verbosity, output_format=output_format)
 
 
 if __name__ == "__main__":  # pragma: no cover
