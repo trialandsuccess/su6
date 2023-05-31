@@ -2,6 +2,11 @@
 
 <!--next-version-placeholder-->
 
+## v0.7.2 (2023-05-31)
+### Fix
+
+* **mypy:** Ensure config.badge is a string/path, not a bool ([`2c29b57`](https://github.com/robinvandernoord/su6-checker/commit/2c29b57a3c0502a7377941f0b48bc569aacc5d63))
+
 ## v0.7.1 (2023-05-31)
 
 
