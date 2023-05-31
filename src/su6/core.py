@@ -14,6 +14,7 @@ import typing
 from dataclasses import dataclass, replace
 
 import black.files
+import plumbum.commands.processes as pb
 import typer
 from plumbum.machines import LocalCommand
 from rich import print
@@ -28,6 +29,8 @@ EXIT_CODE_SUCCESS = 0
 EXIT_CODE_ERROR = 1
 EXIT_CODE_COMMAND_NOT_FOUND = 127
 
+PlumbumError = (pb.ProcessExecutionError, pb.ProcessTimedOut, pb.ProcessLineTimedOut, pb.CommandNotFound)
+
 # ... here indicates any number of args/kwargs:
 # t command is any @app.command() method, which can have anything as input and bool or int as output
 T_Command: typing.TypeAlias = typing.Callable[..., bool | int]
@@ -36,6 +39,13 @@ T_Inner_Wrapper: typing.TypeAlias = typing.Callable[..., int]
 # outer wrapper gets the t_command method as input and outputs the inner wrapper,
 # so that gets called() with args and kwargs when that method is used from the cli
 T_Outer_Wrapper: typing.TypeAlias = typing.Callable[[T_Command], T_Inner_Wrapper]
+
+
+def print_json(data: dict[str, bool]) -> None:
+    """
+    Take a dict of command: output and print it.
+    """
+    print(json.dumps(data))
 
 
 def dump_tools_with_results(tools: list[T_Command], results: list[int | bool]) -> None:
@@ -50,8 +60,7 @@ def dump_tools_with_results(tools: list[T_Command], results: list[int | bool]) -
         tools: list of commands that ran
         results: list of return values from these commands
     """
-    text = json.dumps({tool.__name__: not result for tool, result in zip(tools, results)})
-    print(text)
+    print_json({tool.__name__: not result for tool, result in zip(tools, results)})
 
 
 def with_exit_code() -> T_Outer_Wrapper:

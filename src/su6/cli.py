@@ -2,6 +2,7 @@
 import contextlib
 import math
 import os
+import sys
 import typing
 from json import load as json_load
 
@@ -10,6 +11,7 @@ from plumbum import local
 from plumbum.commands.processes import CommandNotFound, ProcessExecutionError
 from rich import print
 
+from .__about__ import __version__
 from .core import (
     DEFAULT_BADGE,
     DEFAULT_FORMAT,
@@ -21,11 +23,13 @@ from .core import (
     RED_CIRCLE,
     YELLOW_CIRCLE,
     Format,
+    PlumbumError,
     Verbosity,
     dump_tools_with_results,
     info,
     log_cmd_output,
     log_command,
+    print_json,
     state,
     warn,
     with_exit_code,
@@ -245,7 +249,7 @@ def pytest(
 
             result = local["coverage-badge"]("-o", config.badge)
             if state.verbosity > 2:
-                print(result)
+                info(result)
 
     return exit_code
 
@@ -316,22 +320,84 @@ def do_fix(directory: T_directory = None, ignore_uninstalled: bool = False) -> b
     return any(exit_codes)
 
 
-@app.callback()
+@app.command()
+@with_exit_code()
+def self_update(version: str = None) -> int:
+    """
+    Update `su6` to the latest (stable) version.
+
+    Args:
+        version: (optional) specific version to update to
+    """
+    python = sys.executable
+    pip = local[python]["-m", "pip"]
+
+    try:
+        pkg = "su6"
+        if version:
+            pkg = f"{pkg}=={version}"
+
+        args = ["install", "--upgrade", pkg]
+        if state.verbosity >= 3:
+            log_command(pip, args)
+
+        output = pip(*args)
+        if state.verbosity > 2:
+            info(output)
+        match state.output_format:
+            case "text":
+                print(GREEN_CIRCLE, "self-update")
+            #  case json handled automatically by with_exit_code
+        return 0
+    except PlumbumError as e:
+        if state.verbosity > 3:
+            raise e
+        elif state.verbosity > 2:
+            warn(str(e))
+        match state.output_format:
+            case "text":
+                print(RED_CIRCLE, "self-update")
+            # case json handled automatically by with_exit_code
+        return 1
+
+
+def version_callback() -> None:
+    """
+    --version requested!
+    """
+    match state.output_format:
+        case "text":
+            print(f"su6 Version: {__version__}")
+        case "json":
+            print_json({"version": __version__})
+    raise typer.Exit(0)
+
+
+@app.callback(invoke_without_command=True)
 def main(
+    ctx: typer.Context,
     config: str = None,
     verbosity: Verbosity = DEFAULT_VERBOSITY,
     output_format: typing.Annotated[Format, typer.Option("--format")] = DEFAULT_FORMAT,
+    version: bool = False,
 ) -> None:
     """
     This callback will run before every command, setting the right global flags.
 
     Args:
+        ctx: context to determine if a subcommand is passed, etc
         config: path to a different config toml file
         verbosity: level of detail to print out (1 - 3)
         output_format: output format
+        version: display current version?
 
     """
     state.load_config(config_file=config, verbosity=verbosity, output_format=output_format)
+    if version:
+        version_callback()
+
+    if not ctx.invoked_subcommand:
+        warn("Missing subcommand. Try `su6 --help` for more info.")
 
 
 if __name__ == "__main__":  # pragma: no cover

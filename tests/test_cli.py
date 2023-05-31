@@ -2,10 +2,12 @@ import json
 import os
 import shutil
 
+import pytest
 from typer.testing import CliRunner
 
+from src.su6.__about__ import __version__
 from src.su6.cli import _check_tool, app
-from src.su6.core import EXIT_CODE_COMMAND_NOT_FOUND
+from src.su6.core import EXIT_CODE_COMMAND_NOT_FOUND, GREEN_CIRCLE, RED_CIRCLE, PlumbumError
 
 # by default, click's cli runner mixes stdout and stderr for some reason...
 runner = CliRunner(mix_stderr=False)
@@ -115,7 +117,9 @@ def test_all_fix():
         assert result.exit_code == 1
 
         # 2. fix
-        result = runner.invoke(app, ["--verbosity", "3", "--format", "json", "fix", fixable_code, "--ignore-uninstalled"])
+        result = runner.invoke(
+            app, ["--verbosity", "3", "--format", "json", "fix", fixable_code, "--ignore-uninstalled"]
+        )
         assert result.exit_code == 0
 
         data = json.loads(result.stdout)
@@ -254,3 +258,78 @@ def test_json_format():
 
     data = json.loads(result.stdout.strip())
     assert data == {"mypy": False}
+
+
+def test_self_update():
+    args = ["--format", "text", "--verbosity", "3", "self-update"]
+    result = runner.invoke(app, args)
+
+    assert GREEN_CIRCLE in result.stdout.strip()
+
+    args = ["--format", "json", "self-update"]
+    result = runner.invoke(app, args)
+
+    data = json.loads(result.stdout.strip())
+    assert data == {"self_update": True}
+
+
+def test_self_update_invalid_version():
+    args = [
+        "--format",
+        "text",
+        "self-update",
+        "--version",
+        "0.0.0",
+    ]
+    result = runner.invoke(app, args)
+
+    assert RED_CIRCLE in result.stdout.strip()
+
+    args = [
+        "--format",
+        "json",
+        "--verbosity",
+        "3",
+        "self-update",
+        "--version",
+        "0.0.0",
+    ]
+    result = runner.invoke(app, args)
+
+    data = json.loads(result.stdout.strip())
+    assert data == {"self_update": False}
+
+    with pytest.raises(PlumbumError):
+        args = [
+            "--verbosity",
+            "4",
+            "self-update",
+            "--version",
+            "0.0.0",
+        ]
+        result = runner.invoke(app, args)
+        raise result.exception
+
+
+def test_missing_subcommand():
+    result = runner.invoke(app, [])
+    assert "missing subcommand" in result.stderr.lower()
+
+
+def test_version_flag():
+    args = [
+        "--format",
+        "json",
+        "--version"
+    ]
+    result = runner.invoke(app, args)
+    data = json.loads(result.stdout.strip())
+    assert data == {"version": __version__}
+
+    args = [
+        "--format",
+        "text",
+        "--version"
+    ]
+    result = runner.invoke(app, args)
+    assert __version__ in result.stdout
