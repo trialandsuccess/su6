@@ -2,6 +2,11 @@
 
 <!--next-version-placeholder-->
 
+## v0.8.0 (2023-05-31)
+### Feature
+
+* **su6:** Add --version and self-update ([`084cd51`](https://github.com/robinvandernoord/su6-checker/commit/084cd51b066d8d055b62556567b02e8e0a39c5fe))
+
 ## v0.7.2 (2023-05-31)
 ### Fix
 
