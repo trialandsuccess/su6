@@ -157,7 +157,6 @@ select = [
     # "PTH", # use pathlib - NO: annoying
     "RUF", # ruff rules
 ]
-
 unfixable = [
     # Don't touch unused imports
     "F401",

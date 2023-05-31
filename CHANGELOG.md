@@ -2,6 +2,14 @@
 
 <!--next-version-placeholder-->
 
+## v0.7.2 (2023-05-31)
+### Fix
+
+* **mypy:** Ensure config.badge is a string/path, not a bool ([`2c29b57`](https://github.com/robinvandernoord/su6-checker/commit/2c29b57a3c0502a7377941f0b48bc569aacc5d63))
+
+## v0.7.1 (2023-05-31)
+
+
 ## v0.7.0 (2023-05-30)
 ### Feature
 * **cov:** Add support for coverage svg badge to pytest ([`ee6c29c`](https://github.com/robinvandernoord/su6-checker/commit/ee6c29c2d16d379d7d4a09f97a6c6fb29943d513))
