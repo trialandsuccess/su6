@@ -149,7 +149,7 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip' # caching pip dependencies
-      - run: pip install su6[all]
+      - run: pip install su6[all] .
       - run: su6 all
 ```
 
@@ -172,8 +172,8 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip' # caching pip dependencies
-      - run: pip install su6[pycodestyle,black]
-      - run: su6 all --ignore-uninstalled
+      - run: pip install su6[pycodestyle,black] .
+      - run: su6 all --ignore-uninstalled  # ... other settings such as --stop-after-first-failure, --coverage ...
 ```
 
 ## License
