@@ -6,7 +6,7 @@ import pytest
 from typer.testing import CliRunner
 
 from src.su6.__about__ import __version__
-from src.su6.cli import _check_tool, app
+from src.su6.cli import run_tool, app
 from src.su6.core import EXIT_CODE_COMMAND_NOT_FOUND, GREEN_CIRCLE, RED_CIRCLE, PlumbumError
 
 # by default, click's cli runner mixes stdout and stderr for some reason...
@@ -199,7 +199,7 @@ def test_all_bad():
 
 
 def test_command_not_found():
-    fake_tool = _check_tool("xxx-should-never-exist-xxx")
+    fake_tool = run_tool("xxx-should-never-exist-xxx")
 
     assert fake_tool == EXIT_CODE_COMMAND_NOT_FOUND
 

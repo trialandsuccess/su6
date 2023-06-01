@@ -16,6 +16,7 @@ from dataclasses import dataclass, field, replace
 import black.files
 import plumbum.commands.processes as pb
 import typer
+from plumbum import local
 from plumbum.machines import LocalCommand
 from rich import print
 from typeguard import TypeCheckError
@@ -33,22 +34,22 @@ PlumbumError = (pb.ProcessExecutionError, pb.ProcessTimedOut, pb.ProcessLineTime
 
 # ... here indicates any number of args/kwargs:
 # t command is any @app.command() method, which can have anything as input and bool or int as output
-T_Command: typing.TypeAlias = typing.Callable[..., bool | int]
+T_Command: typing.TypeAlias = typing.Callable[..., bool | int | None]
 # t inner wrapper calls t_command and handles its output. This wrapper gets the same (kw)args as above so ... again
-T_Inner_Wrapper: typing.TypeAlias = typing.Callable[..., int]
+T_Inner_Wrapper: typing.TypeAlias = typing.Callable[..., int | None]
 # outer wrapper gets the t_command method as input and outputs the inner wrapper,
 # so that gets called() with args and kwargs when that method is used from the cli
 T_Outer_Wrapper: typing.TypeAlias = typing.Callable[[T_Command], T_Inner_Wrapper]
 
 
-def print_json(data: dict[str, typing.Any]) -> None:
+def print_json(data: typing.Any) -> None:
     """
     Take a dict of {command: output} or the State and print it.
     """
     print(json.dumps(data, default=str))
 
 
-def dump_tools_with_results(tools: list[T_Command], results: list[int | bool]) -> None:
+def dump_tools_with_results(tools: list[T_Command], results: list[int | bool | None]) -> None:
     """
     When using format = json, dump the success of each tool in tools (-> exit code == 0).
 
@@ -83,12 +84,16 @@ def with_exit_code() -> T_Outer_Wrapper:
             _ignore_exit_codes = kwargs.pop("_ignore", set())
 
             result = func(*args, **kwargs)
-            if state.output_format == "json" and not _suppress and not isinstance(result, bool):
+            if state.output_format == "json" and not _suppress and result is not None and not isinstance(result, bool):
                 # isinstance(True, int) -> True so not isinstance(result, bool)
                 # print {tool: success}
                 # but only if a retcode is returned,
                 # otherwise (True, False) assume the function handled printing itself.
                 dump_tools_with_results([func], [result])
+
+            if result is None:
+                # assume no issue then
+                result = 0
 
             if (retcode := int(result)) and not _suppress:
                 raise typer.Exit(code=retcode)
@@ -102,6 +107,46 @@ def with_exit_code() -> T_Outer_Wrapper:
         return inner_wrapper
 
     return outer_wrapper
+
+
+def run_tool(tool: str, *args: str) -> int:
+    """
+    Abstraction to run one of the cli checking tools and process its output.
+
+    Args:
+        tool: the (bash) name of the tool to run.
+        args: cli args to pass to the cli bash tool
+    """
+    try:
+        cmd = local[tool]
+
+        if state.verbosity >= 3:
+            log_command(cmd, args)
+
+        result = cmd(*args)
+
+        if state.output_format == "text":
+            print(GREEN_CIRCLE, tool)
+
+        if state.verbosity > 2:  # pragma: no cover
+            log_cmd_output(result)
+
+        return EXIT_CODE_SUCCESS  # success
+    except pb.CommandNotFound:  # pragma: no cover
+        if state.verbosity > 2:
+            warn(f"Tool {tool} not installed!")
+
+        if state.output_format == "text":
+            print(YELLOW_CIRCLE, tool)
+
+        return EXIT_CODE_COMMAND_NOT_FOUND  # command not found
+    except pb.ProcessExecutionError as e:
+        if state.output_format == "text":
+            print(RED_CIRCLE, tool)
+
+        if state.verbosity > 1:
+            log_cmd_output(e.stdout, e.stderr)
+        return EXIT_CODE_ERROR  # general error
 
 
 class Verbosity(enum.Enum):

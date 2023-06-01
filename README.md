@@ -16,6 +16,7 @@ This package will hopefully help achieve that!
 - [Installation](#installation)
 - [Usage](#usage)
 - [License](#license)
+- [Plugins](#plugins)
 - [Changelog](#changelog)
 
 ## Installation
@@ -175,6 +176,9 @@ jobs:
       - run: pip install su6[pycodestyle,black] .
       - run: su6 all --ignore-uninstalled  # ... other settings such as --stop-after-first-failure, --coverage ...
 ```
+
+## Plugins
+This tool also supports plugins to add extra checkers or other functionality. See [docs/plugins.md](https://github.com/robinvandernoord/su6-checker/blob/master/docs/plugins.md)
 
 ## License
 
