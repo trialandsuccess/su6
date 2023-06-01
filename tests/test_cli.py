@@ -317,19 +317,66 @@ def test_missing_subcommand():
 
 
 def test_version_flag():
-    args = [
-        "--format",
-        "json",
-        "--version"
-    ]
+    args = ["--format", "json", "--version"]
     result = runner.invoke(app, args)
     data = json.loads(result.stdout.strip())
     assert data == {"version": __version__}
 
-    args = [
-        "--format",
-        "text",
-        "--version"
-    ]
+    args = ["--format", "text", "--version"]
     result = runner.invoke(app, args)
     assert __version__ in result.stdout
+
+
+def test_stop_after_first_failure():
+    # with cli flag
+    args = [
+        "--config",
+        str(EXAMPLES_PATH / "except_pytest.toml"),
+        "--format",
+        "json",
+        "all",
+        BAD_CODE,
+        "--stop-after-first-failure",
+    ]
+    result = runner.invoke(app, args)
+    assert result.exit_code == 1
+
+    results = json.loads(result.stdout)
+
+    assert results == {
+        "ruff": False,
+    }
+
+    # with toml
+    args = ["--config", str(EXAMPLES_PATH / "stop_after_first.toml"), "--format", "json", "all", BAD_CODE]
+    result = runner.invoke(app, args)
+    assert result.exit_code == 1
+    results = json.loads(result.stdout)
+
+    assert results == {
+        "ruff": False,
+    }
+
+
+def test_show_config_callback():
+    # text
+    args = [
+        "--show-config"
+    ]
+    result = runner.invoke(app, args)
+    assert result.exit_code == 0
+    assert "ApplicationState(" in result.stdout and "Config(" in result.stdout
+
+    # json
+    args = [
+        "--show-config",
+        "--format",
+        "json",
+        "--verbosity",
+        "3",
+    ]
+    result = runner.invoke(app, args)
+    assert result.exit_code == 0
+
+    data = json.loads(result.stdout)
+    assert "Verbosity.verbose" in data['verbosity']

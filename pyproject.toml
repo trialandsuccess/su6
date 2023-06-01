@@ -100,9 +100,14 @@ build_command = "hatch build"
 
 ### required in every su6 pyproject: ###
 [tool.su6]
+# every checker:
 directory = "src"
+# 'all' and 'fix':
 include = []
 exclude = []
+# 'all':
+stop-after-first-failure = false
+# pytest:
 coverage = 100
 badge = true
 

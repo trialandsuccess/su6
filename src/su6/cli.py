@@ -4,6 +4,7 @@ import math
 import os
 import sys
 import typing
+from dataclasses import asdict
 from json import load as json_load
 
 import typer
@@ -181,6 +182,64 @@ def pydocstyle(directory: T_directory = None) -> int:
     return _check_tool("pydocstyle", config.directory)
 
 
+@app.command(name="all")
+@with_exit_code()
+def check_all(
+    directory: T_directory = None,
+    ignore_uninstalled: bool = False,
+    stop_after_first_failure: bool = None,
+    # pytest:
+    coverage: float = None,
+    badge: bool = None,
+) -> bool:
+    """
+    Run all available checks.
+
+    Args:
+        directory: where to run the tools on (default is current dir)
+        ignore_uninstalled: use --ignore-uninstalled to skip exit code 127 (command not found)
+        stop_after_first_failure: by default, the tool continues to run each test.
+                But if you only want to know if everything passes,
+                you could set this flag (or in the config toml) to stop early.
+
+        coverage: pass to pytest()
+        badge: pass to pytest()
+
+    `def all()` is not allowed since this overshadows a builtin
+    """
+    config = state.update_config(
+        directory=directory,
+        stop_after_first_failure=stop_after_first_failure,
+        coverage=coverage,
+        badge=badge,
+    )
+
+    ignored_exit_codes = set()
+    if ignore_uninstalled:
+        ignored_exit_codes.add(EXIT_CODE_COMMAND_NOT_FOUND)
+
+    tools = config.determine_which_to_run([ruff, black, mypy, bandit, isort, pydocstyle, pytest])
+
+    exit_codes = []
+    for tool in tools:
+        a = [directory]
+        kw = dict(_suppress=True, _ignore=ignored_exit_codes)
+
+        if tool is pytest:  # pragma: no cover
+            kw["coverage"] = config.coverage
+            kw["badge"] = config.badge
+
+        result = tool(*a, **kw)
+        exit_codes.append(result)
+        if config.stop_after_first_failure and result != 0:
+            break
+
+    if state.output_format == "json":
+        dump_tools_with_results(tools, exit_codes)
+
+    return any(exit_codes)
+
+
 @app.command()
 @with_exit_code()
 def pytest(
@@ -254,45 +313,6 @@ def pytest(
     return exit_code
 
 
-@app.command(name="all")
-@with_exit_code()
-def check_all(
-    directory: T_directory = None, ignore_uninstalled: bool = False, coverage: float = None, badge: bool = None
-) -> bool:
-    """
-    Run all available checks.
-
-    Args:
-        directory: where to run the tools on (default is current dir)
-        ignore_uninstalled: use --ignore-uninstalled to skip exit code 127 (command not found)
-        coverage: pass to pytest()
-        badge: pass to pytest()
-
-    """
-    config = state.update_config(directory=directory)
-    ignored_exit_codes = set()
-    if ignore_uninstalled:
-        ignored_exit_codes.add(EXIT_CODE_COMMAND_NOT_FOUND)
-
-    tools = config.determine_which_to_run([ruff, black, mypy, bandit, isort, pydocstyle, pytest])
-
-    exit_codes = []
-    for tool in tools:
-        a = [directory]
-        kw = dict(_suppress=True, _ignore=ignored_exit_codes)
-
-        if tool is pytest:  # pragma: no cover
-            kw["coverage"] = coverage
-            kw["badge"] = badge
-
-        exit_codes.append(tool(*a, **kw))
-
-    if state.output_format == "json":
-        dump_tools_with_results(tools, exit_codes)
-
-    return any(exit_codes)
-
-
 @app.command(name="fix")
 @with_exit_code()
 def do_fix(directory: T_directory = None, ignore_uninstalled: bool = False) -> bool:
@@ -303,6 +323,7 @@ def do_fix(directory: T_directory = None, ignore_uninstalled: bool = False) -> b
         directory: where to run the tools on (default is current dir)
         ignore_uninstalled: use --ignore-uninstalled to skip exit code 127 (command not found)
 
+    `def fix()` is not recommended because other commands have 'fix' as an argument so those names would collide.
     """
     config = state.update_config(directory=directory)
 
@@ -361,7 +382,7 @@ def self_update(version: str = None) -> int:
         return 1
 
 
-def version_callback() -> None:
+def version_callback() -> typing.Never:
     """
     --version requested!
     """
@@ -373,12 +394,26 @@ def version_callback() -> None:
     raise typer.Exit(0)
 
 
+def show_config_callback() -> typing.Never:
+    """
+    --show-config requested!
+    """
+    match state.output_format:
+        case "text":
+            print(state)
+        case "json":
+            print_json(asdict(state))
+    raise typer.Exit(0)
+
+
 @app.callback(invoke_without_command=True)
 def main(
     ctx: typer.Context,
     config: str = None,
     verbosity: Verbosity = DEFAULT_VERBOSITY,
     output_format: typing.Annotated[Format, typer.Option("--format")] = DEFAULT_FORMAT,
+    # stops the program:
+    show_config: bool = False,
     version: bool = False,
 ) -> None:
     """
@@ -389,15 +424,20 @@ def main(
         config: path to a different config toml file
         verbosity: level of detail to print out (1 - 3)
         output_format: output format
+
+        show_config: display current configuration?
         version: display current version?
 
     """
     state.load_config(config_file=config, verbosity=verbosity, output_format=output_format)
-    if version:
-        version_callback()
 
-    if not ctx.invoked_subcommand:
+    if show_config:
+        show_config_callback()
+    elif version:
+        version_callback()
+    elif not ctx.invoked_subcommand:
         warn("Missing subcommand. Try `su6 --help` for more info.")
+    # else: just continue
 
 
 if __name__ == "__main__":  # pragma: no cover

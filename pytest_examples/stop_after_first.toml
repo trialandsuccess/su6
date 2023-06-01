@@ -1,0 +1,3 @@
+[tool.su6]
+include = ["ruff", "mypy", "bandit", "isort", "pydocstyle", "pytest"]
+stop-after-first-failure = true

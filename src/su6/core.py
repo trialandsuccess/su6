@@ -41,11 +41,11 @@ T_Inner_Wrapper: typing.TypeAlias = typing.Callable[..., int]
 T_Outer_Wrapper: typing.TypeAlias = typing.Callable[[T_Command], T_Inner_Wrapper]
 
 
-def print_json(data: dict[str, bool]) -> None:
+def print_json(data: dict[str, typing.Any]) -> None:
     """
-    Take a dict of command: output and print it.
+    Take a dict of {command: output} or the State and print it.
     """
-    print(json.dumps(data))
+    print(json.dumps(data, default=str))
 
 
 def dump_tools_with_results(tools: list[T_Command], results: list[int | bool]) -> None:
@@ -237,6 +237,9 @@ class Config:
     pyproject: str = "pyproject.toml"
     include: list[str] = field(default_factory=list)
     exclude: list[str] = field(default_factory=list)
+    stop_after_first_failure: bool = False
+
+    ### pytest ###
     coverage: typing.Optional[float] = None  # only relevant for pytest
     badge: bool | str = False  # only relevant for pytest
 
@@ -329,6 +332,16 @@ def _ensure_types(data: dict[str, T], annotations: dict[str, type]) -> dict[str,
     return final
 
 
+def _convert_config(items: dict[str, T]) -> dict[str, T]:
+    """
+    Converts the config dict (from toml) or 'overwrites' dict in two ways.
+
+    1. removes any items where the value is None, since in that case the default should be used;
+    2. replaces '-' in keys with '_' so it can be mapped to the Config properties.
+    """
+    return {k.replace("-", "_"): v for k, v in items.items() if v is not None}
+
+
 def _get_su6_config(overwrites: dict[str, typing.Any], toml_path: str = None) -> MaybeConfig:
     """
     Parse the users pyproject.toml (found using black's logic) and extract the tool.su6 part.
@@ -354,6 +367,8 @@ def _get_su6_config(overwrites: dict[str, typing.Any], toml_path: str = None) ->
     su6_config_dict |= overwrites
 
     su6_config_dict["pyproject"] = toml_path
+    # first convert the keys, then ensure types. Otherwise, non-matching keys may be removed!
+    su6_config_dict = _convert_config(su6_config_dict)
     su6_config_dict = _ensure_types(su6_config_dict, Config.__annotations__)
 
     return Config(**su6_config_dict)
@@ -370,7 +385,7 @@ def get_su6_config(verbosity: Verbosity = DEFAULT_VERBOSITY, toml_path: str = No
                 If a value is None, the key is not overwritten.
     """
     # strip out any 'overwrites' with None as value
-    overwrites = {k: v for k, v in overwrites.items() if v is not None}
+    overwrites = _convert_config(overwrites)
 
     try:
         if config := _get_su6_config(overwrites, toml_path=toml_path):
@@ -433,7 +448,9 @@ class ApplicationState:
 
     State contains generic variables passed BEFORE the subcommand (so --verbosity, --config, ...),
     whereas Config contains settings from the config toml file, updated with arguments AFTER the subcommand
-    (e.g. su6 subcommand <directory> --flag), directory and flag will be updated in the config and not the state
+    (e.g. su6 subcommand <directory> --flag), directory and flag will be updated in the config and not the state.
+
+    To summarize: 'state' is applicable to all commands and config only to specific ones.
     """
 
     verbosity: Verbosity = DEFAULT_VERBOSITY
@@ -465,7 +482,7 @@ class ApplicationState:
         """
         existing_config = self.load_config() if self.config is None else self.config
 
-        values = {k: v for k, v in values.items() if v is not None}
+        values = _convert_config(values)
         # replace is dataclass' update function
         self.config = replace(existing_config, **values)
         return self.config

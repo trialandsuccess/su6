@@ -118,6 +118,7 @@ Currently, the following keys are supported:
 directory = "." # string path to the directory on which to run all tools, e.g. 'src'
 include = [] # list of checks to run (when calling `su6 all`), e.g. ['black', 'mypy']
 exclude = [] # list of checks to skip (when calling `su6 all`), e.g. ['bandit']
+stop-after-first-failure = false  # bool to indicate whether to exit 'all' after one failure or to do all checks
 coverage = 100 # int threshold for pytest coverage 
 badge = "coverage.svg"  # str path or bool (true | false) whether and where to output the coverage badge
 ```
