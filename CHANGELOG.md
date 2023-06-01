@@ -2,6 +2,16 @@
 
 <!--next-version-placeholder-->
 
+## v0.9.0 (2023-06-01)
+### Feature
+
+* **all:** Add `stop-after-first-failure` flag to `all` and pyproject toml ([`906678a`](https://github.com/robinvandernoord/su6-checker/commit/906678a344aa68a2ef2101f9765dc1e601d5d5dd))
+* **config:** 'include' can now also specify the order of checks to run in 'all' ([`6f9123b`](https://github.com/robinvandernoord/su6-checker/commit/6f9123b1869c15342bbc7e4d7cfb39f2fbb181bb))
+
+### Documentation
+
+* **README:** Better example for gh actions ([`73fa545`](https://github.com/robinvandernoord/su6-checker/commit/73fa5451ec0b0c7897eaa505c931f3af991a3a5d))
+
 ## v0.8.0 (2023-05-31)
 ### Feature
 
