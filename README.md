@@ -100,12 +100,12 @@ where `subcommand` is `all` or one of the available checkers;
 In the case of `black` and `isort`, another optional parameter `--fix` can be passed.
 This will allow the tools to do the suggested changes (if applicable).
 Running `su6 fix` will run both these tools with the `--fix` flag.  
-For `pytest`, `--json`, `--html`, `--badge <str>` and `--coverage <int>` are supported. 
+For `pytest`, `--json`, `--html`, `--badge <str>` and `--coverage <int>` are supported.
 The latter two can also be configured in the pyproject.toml (see ['Configuration'](#configuration)).
 The first two arguments can be used to control the output format of `pytest --cov`. Both options can be used at the same
 time. The `--coverage` flag can be used to set a threshold for code coverage %. If the coverage is less than this
-threshold, the check will fail. 
-If `badge` is set using cli or toml config, a SVG badge with the coverage % will be generated. 
+threshold, the check will fail.
+If `badge` is set using cli or toml config, a SVG badge with the coverage % will be generated.
 This badge can be used in for example the README.md.
 
 ### Configuration
@@ -123,7 +123,9 @@ badge = "coverage.svg"  # str path or bool (true | false) whether and where to o
 ```
 
 All keys are optional. Note that if you have both an `include` as well as an `exclude`, all the tools in `include` will
-run and `exclude` will be fully ignored.
+run and `exclude` will be fully ignored.  
+Additionally, the order in which the checks are defined in 'include', is the order in which they will run (in `all`
+and `fix`)
 
 ### Github Action
 

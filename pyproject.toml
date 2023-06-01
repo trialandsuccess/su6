@@ -103,7 +103,7 @@ build_command = "hatch build"
 directory = "src"
 include = []
 exclude = []
-coverage = 99
+coverage = 100
 badge = true
 
 [tool.black]

@@ -11,7 +11,7 @@ import sys
 import tomllib
 import types
 import typing
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 
 import black.files
 import plumbum.commands.processes as pb
@@ -235,8 +235,8 @@ class Config:
 
     directory: str = "."
     pyproject: str = "pyproject.toml"
-    include: typing.Optional[list[str]] = None
-    exclude: typing.Optional[list[str]] = None
+    include: list[str] = field(default_factory=list)
+    exclude: list[str] = field(default_factory=list)
     coverage: typing.Optional[float] = None  # only relevant for pytest
     badge: bool | str = False  # only relevant for pytest
 
@@ -253,7 +253,9 @@ class Config:
         Filter out any includes/excludes from pyproject.toml (first check include, then exclude).
         """
         if self.include:
-            return [_ for _ in options if _.__name__ in self.include]
+            tools = [_ for _ in options if _.__name__ in self.include]
+            tools.sort(key=lambda f: self.include.index(f.__name__))
+            return tools
         elif self.exclude:
             return [_ for _ in options if _.__name__ not in self.exclude]
         # if no include or excludes passed, just run all!
