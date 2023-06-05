@@ -2,6 +2,20 @@
 
 <!--next-version-placeholder-->
 
+## v1.0.0 (2023-06-05)
+### Feature
+
+* **plugins:** Allow third party plugins ([`5ba672a`](https://github.com/robinvandernoord/su6-checker/commit/5ba672a40b893488dd593c88ed5ea9245cc66d95))
+
+### Fix
+
+* **plugins:** Expose run_tool externally for use in plugins ([`9c05af0`](https://github.com/robinvandernoord/su6-checker/commit/9c05af035a309a9205d96b7038f203d40f500097))
+* **plugins:** Proper mypy return types ([`a3f2f2e`](https://github.com/robinvandernoord/su6-checker/commit/a3f2f2ecb0a5cdb717582d7dd28b2c64b9f3e913))
+
+### Documentation
+
+* **plugins:** Show usage example of making a checker ([`b02e981`](https://github.com/robinvandernoord/su6-checker/commit/b02e981fc112795e90a59d5ee6dc7ddfa6f63ed5))
+
 ## v0.9.0 (2023-06-01)
 ### Feature
 
