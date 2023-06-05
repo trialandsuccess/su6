@@ -1,22 +1,89 @@
 """
 Provides a register decorator for third party plugins, and a `include_plugins` (used in cli.py) that loads them.
 """
+import functools
 import typing
 from dataclasses import dataclass, field
 from importlib.metadata import entry_points
 
+from rich import print
 from typer import Typer
 
-from .core import T_Command, T_Command_Return, run_tool, with_exit_code
+from .core import (
+    ApplicationState,
+    T_Command,
+    T_Command_Return,
+    print_json,
+    run_tool,
+    state,
+    with_exit_code,
+)
 
-__all__ = [
-    "register",
-    "run_tool",
-]
+__all__ = ["register", "run_tool", "PluginConfig", "print", "print_json"]
+
+
+class PluginConfig:
+    state: typing.Optional[ApplicationState]
+    _extras: dict[str, typing.Any] | None = None
+    _config_key = None
+
+    def __init__(self, **kw: typing.Any) -> None:
+        super().__init__()
+        self.update(**kw)
+
+    def __init_subclass__(cls, with_state: bool = False, config_key: str = None, **kwargs: typing.Any) -> None:
+        super().__init_subclass__()
+        cls._extras = {}  # own copy of extra's per subclass
+        if with_state:
+            cls._extras["state"] = state
+            setattr(cls, "state", state)
+
+        if config_key:
+            cls._config_key = config_key
+
+    def update(self, **kw: typing.Any) -> None:
+        for k, v in kw.items():
+            setattr(self, k, v)
+
+    def _fields(self) -> typing.Generator[str, typing.Any, None]:
+        yield from self.__annotations__.keys()
+        if self._extras:
+            yield from self._extras.keys()  # -> self.state in _values
+
+    def _get(self, key: str) -> typing.Any:
+        notfound = object()
+
+        value = getattr(self, key, notfound)
+        if value is not notfound:
+            return value
+
+        if self._extras:
+            value = self._extras.get(key, notfound)
+            if value is not notfound:
+                return value
+
+        msg = f"{key} not found in `self {self.__class__.__name__}`"
+        if self._extras:
+            msg += f" or `extra's {self._extras.keys()}`"
+        raise KeyError(msg)
+
+    def _values(self) -> typing.Generator[typing.Any, typing.Any, None]:
+        yield from (self._get(k) for k in self._fields())
+
+    def __repr__(self) -> str:
+        # from dataclasses._repr_fn
+        fields = self._fields()
+        values = self._values()
+        args = ", ".join([f"{f}={v!r}" for f, v in zip(fields, values)])
+        name = self.__class__.__qualname__
+        return f"{name}({args})"
+
+    def __str__(self) -> str:
+        return repr(self)
 
 
 @dataclass
-class PluginRegistration:
+class PluginCommandRegistration:
     """
     When using the @register decorator, a Registration is created.
 
@@ -47,44 +114,22 @@ class PluginRegistration:
         return self.func(*args, **kwargs)
 
 
-T_Inner = typing.Callable[[T_Command], PluginRegistration]
+T_Config = typing.Type[PluginConfig]
+T_Wrappable = T_Config | T_Command
+T_Register_Inner = PluginCommandRegistration | T_Config
+T_Register_Outer = typing.Callable[[T_Wrappable], T_Register_Inner]
 
 
-@typing.overload
-def register(
-    func_outer: None = None,
-    *a_outer: typing.Any,
-    **kw_outer: typing.Any,
-) -> T_Inner:
-    """
-    If func outer is None, a callback will be created that will return a Registration later.
-
-    Example:
-        @register()
-        def command
-    """
+# T_Register_Outer = typing.Callable[[T_Wrappable], PluginCommandRegistration] | typing.Callable[[T_Wrappable], T_Config]
+# T_Register_Outer_Command = typing.Callable[[T_Wrappable], PluginCommandRegistration]
+# T_Register_Outer_Config = typing.Callable[[T_Wrappable], T_Config]
 
 
-@typing.overload
-def register(
+def _register_command(
     func_outer: T_Command,
     *a_outer: typing.Any,
     **kw_outer: typing.Any,
-) -> PluginRegistration:
-    """
-    If func outer is a command, a registration will be created.
-
-    Example:
-        @register
-        def command
-    """
-
-
-def register(
-    func_outer: T_Command | None = None,
-    *a_outer: typing.Any,
-    **kw_outer: typing.Any,
-) -> PluginRegistration | T_Inner:
+) -> PluginCommandRegistration:
     """
     Decorator used to add a top-level command to `su6`.
 
@@ -95,24 +140,71 @@ def register(
         a_outer: arguments passed to @register(arg1, arg2, ...) - should probably not be used!
         kw_outer: keyword arguments passed to @register(name=...) - will be passed to Typer's @app.command
     """
-    if func_outer:
-        # @register
-        # def func
-        return PluginRegistration(func_outer, a_outer, kw_outer)
+    return PluginCommandRegistration(func_outer, a_outer, kw_outer)
 
-    # @functools.wraps(func_outer)
-    def inner(func_inner: T_Command) -> PluginRegistration:
-        # @register()
-        # def func
 
-        # combine args/kwargs from inner and outer, just to be sure they are passed.
-        return PluginRegistration(func_inner, a_outer, kw_outer)
+@typing.overload
+def _register(wrappable: T_Config, *a: typing.Any, **kw: typing.Any) -> T_Config:
+    ...
+
+
+@typing.overload
+def _register(wrappable: T_Command, *a: typing.Any, **kw: typing.Any) -> PluginCommandRegistration:
+    ...
+
+
+def _register(wrappable: T_Wrappable, *a: typing.Any, **kw: typing.Any) -> T_Register_Inner:
+    if isinstance(wrappable, type) and issubclass(wrappable, PluginConfig):
+        return _register_config(wrappable)
+    elif callable(wrappable):
+        # register as function
+        return _register_command(wrappable, *a, **kw)
+    else:
+        raise NotImplementedError("...")
+
+
+@typing.overload
+def register(wrappable: T_Config, *a_outer: typing.Any, **kw_outer: typing.Any) -> T_Config:
+    ...
+
+
+@typing.overload
+def register(wrappable: T_Command, *a_outer: typing.Any, **kw_outer: typing.Any) -> PluginCommandRegistration:
+    ...
+
+
+@typing.overload
+def register(wrappable: None = None, *a_outer: typing.Any, **kw_outer: typing.Any) -> T_Register_Outer:
+    ...
+
+
+def register(
+    wrappable: T_Wrappable = None, *a_outer: typing.Any, **kw_outer: typing.Any
+) -> T_Register_Outer | T_Register_Inner:
+    if wrappable:
+        return _register(wrappable, *a_outer, **kw_outer)
+
+    @typing.overload
+    def inner(func: T_Command) -> PluginCommandRegistration:
+        ...
+
+    @typing.overload
+    def inner(func: T_Config) -> T_Config:
+        ...
+
+    # else:
+    def inner(func: T_Wrappable) -> T_Register_Inner:
+        return _register(func, *a_outer, **kw_outer)
 
     return inner
 
 
+def _register_config(_cls: T_Config) -> T_Config:
+    return _cls
+
+
 # list of registrations
-T_Commands = list[PluginRegistration]
+T_Commands = list[PluginCommandRegistration]
 
 # key: namespace
 # value: app instance, docstring for 'help'
@@ -184,3 +276,36 @@ def include_plugins(app: Typer, _with_exit_code: bool = True) -> None:
 # - add to 'all'
 # - add to 'fix'
 # - adding config keys
+
+if typing.TYPE_CHECKING:
+    # for mypy checking
+    @register
+    def without_braces() -> None:
+        ...
+
+    @register()
+    def with_braces() -> None:
+        ...
+
+    @register(name="other")
+    def with_kwargs() -> None:
+        ...
+
+    class NormalClass(PluginConfig):
+        ...
+
+    @register
+    class ConfigWithoutBraces(PluginConfig):
+        ...
+
+    @register()
+    class ConfigWithBraces(PluginConfig):
+        ...
+
+    cls1 = NormalClass
+    inst1 = cls1()
+    cls2 = ConfigWithoutBraces
+    inst2 = cls2()
+    # fixme:
+    cls3 = ConfigWithBraces
+    inst3 = cls3()
