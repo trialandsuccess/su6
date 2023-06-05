@@ -7,7 +7,12 @@ from importlib.metadata import entry_points
 
 from typer import Typer
 
-from .core import T_Command, T_Command_Return, with_exit_code
+from .core import T_Command, T_Command_Return, run_tool, with_exit_code
+
+__all__ = [
+    "register",
+    "run_tool",
+]
 
 
 @dataclass
