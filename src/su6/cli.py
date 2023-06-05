@@ -5,11 +5,12 @@ import os
 import sys
 import typing
 from dataclasses import asdict
+from importlib.metadata import entry_points
 from json import load as json_load
 
 import typer
 from plumbum import local
-from plumbum.commands.processes import CommandNotFound, ProcessExecutionError
+from plumbum.machines import LocalCommand
 from rich import print
 
 from .__about__ import __version__
@@ -18,66 +19,25 @@ from .core import (
     DEFAULT_FORMAT,
     DEFAULT_VERBOSITY,
     EXIT_CODE_COMMAND_NOT_FOUND,
-    EXIT_CODE_ERROR,
-    EXIT_CODE_SUCCESS,
     GREEN_CIRCLE,
     RED_CIRCLE,
-    YELLOW_CIRCLE,
     Format,
     PlumbumError,
     Verbosity,
     dump_tools_with_results,
     info,
-    log_cmd_output,
     log_command,
     print_json,
+    run_tool,
     state,
     warn,
     with_exit_code,
 )
+from .plugins import include_plugins
 
 app = typer.Typer()
 
-
-def _check_tool(tool: str, *args: str) -> int:
-    """
-    Abstraction to run one of the cli checking tools and process its output.
-
-    Args:
-        tool: the (bash) name of the tool to run.
-        args: cli args to pass to the cli bash tool
-    """
-    try:
-        cmd = local[tool]
-
-        if state.verbosity >= 3:
-            log_command(cmd, args)
-
-        result = cmd(*args)
-
-        if state.output_format == "text":
-            print(GREEN_CIRCLE, tool)
-
-        if state.verbosity > 2:  # pragma: no cover
-            log_cmd_output(result)
-
-        return EXIT_CODE_SUCCESS  # success
-    except CommandNotFound:  # pragma: no cover
-        if state.verbosity > 2:
-            warn(f"Tool {tool} not installed!")
-
-        if state.output_format == "text":
-            print(YELLOW_CIRCLE, tool)
-
-        return EXIT_CODE_COMMAND_NOT_FOUND  # command not found
-    except ProcessExecutionError as e:
-        if state.output_format == "text":
-            print(RED_CIRCLE, tool)
-
-        if state.verbosity > 1:
-            log_cmd_output(e.stdout, e.stderr)
-        return EXIT_CODE_ERROR  # general error
-
+include_plugins(app)
 
 # 'directory' is an optional cli argument to many commands, so we define the type here for reuse:
 T_directory: typing.TypeAlias = typing.Annotated[str, typer.Argument()]  # = "."
@@ -94,7 +54,7 @@ def ruff(directory: T_directory = None) -> int:
 
     """
     config = state.update_config(directory=directory)
-    return _check_tool("ruff", config.directory)
+    return run_tool("ruff", config.directory)
 
 
 @app.command()
@@ -116,7 +76,7 @@ def black(directory: T_directory = None, fix: bool = False) -> int:
     elif state.verbosity > 2:
         info("note: running WITHOUT --check -> changing files")
 
-    return _check_tool("black", *args)
+    return run_tool("black", *args)
 
 
 @app.command()
@@ -137,7 +97,7 @@ def isort(directory: T_directory = None, fix: bool = False) -> int:
     elif state.verbosity > 2:
         info("note: running WITHOUT --check -> changing files")
 
-    return _check_tool("isort", *args)
+    return run_tool("isort", *args)
 
 
 @app.command()
@@ -151,7 +111,7 @@ def mypy(directory: T_directory = None) -> int:
 
     """
     config = state.update_config(directory=directory)
-    return _check_tool("mypy", config.directory)
+    return run_tool("mypy", config.directory)
 
 
 @app.command()
@@ -165,7 +125,7 @@ def bandit(directory: T_directory = None) -> int:
 
     """
     config = state.update_config(directory=directory)
-    return _check_tool("bandit", "-r", "-c", config.pyproject, config.directory)
+    return run_tool("bandit", "-r", "-c", config.pyproject, config.directory)
 
 
 @app.command()
@@ -179,7 +139,7 @@ def pydocstyle(directory: T_directory = None) -> int:
 
     """
     config = state.update_config(directory=directory)
-    return _check_tool("pydocstyle", config.directory)
+    return run_tool("pydocstyle", config.directory)
 
 
 @app.command(name="all")
@@ -248,6 +208,8 @@ def pytest(
     json: bool = False,
     coverage: int = None,
     badge: bool = None,
+    k: typing.Annotated[str, typer.Option("-k")] = None,  # fw to pytest
+    s: typing.Annotated[bool, typer.Option("-s")] = False,  # fw to pytest
 ) -> int:  # pragma: no cover
     """
     Runs all pytests.
@@ -258,6 +220,9 @@ def pytest(
         json: generate JSON coverage output?
         coverage: threshold for coverage (in %)
         badge: generate coverage badge (svg)? If you want to change the name, do this in pyproject.toml
+
+        k: pytest -k <str> option
+        s: pytest -s option
 
     Example:
         > su6 pytest --coverage 50
@@ -279,13 +244,18 @@ def pytest(
         # json output required!
         json = True
 
+    if k:
+        args.extend(["-k", k])
+    if s:
+        args.append("-s")
+
     if html:
         args.extend(["--cov-report", "html"])
 
     if json:
         args.extend(["--cov-report", "json"])
 
-    exit_code = _check_tool("pytest", *args)
+    exit_code = run_tool("pytest", *args)
 
     if config.coverage is not None:
         with open("coverage.json") as f:
@@ -317,7 +287,7 @@ def pytest(
 @with_exit_code()
 def do_fix(directory: T_directory = None, ignore_uninstalled: bool = False) -> bool:
     """
-    Do everything that's safe to fix (so not ruff because that may break semantics).
+    Do everything that's safe to fix (not ruff because that may break semantics).
 
     Args:
         directory: where to run the tools on (default is current dir)
@@ -343,6 +313,42 @@ def do_fix(directory: T_directory = None, ignore_uninstalled: bool = False) -> b
 
 @app.command()
 @with_exit_code()
+def plugins() -> None:
+    """
+    List installed plugin modules.
+
+    """
+    modules = entry_points(group="su6")
+    match state.output_format:
+        case "text":
+            if modules:
+                print("Installed Plugins:")
+                [print("-", _) for _ in modules]
+            else:  # pragma: nocover
+                print("No Installed Plugins.")
+        case "json":
+            print_json(
+                {
+                    _.name: {
+                        "name": _.name,
+                        "value": _.value,
+                        "group": _.group,
+                    }
+                    for _ in modules
+                }
+            )
+
+
+def _pip() -> LocalCommand:
+    """
+    Return a `pip` command.
+    """
+    python = sys.executable
+    return local[python]["-m", "pip"]
+
+
+@app.command()
+@with_exit_code()
 def self_update(version: str = None) -> int:
     """
     Update `su6` to the latest (stable) version.
@@ -350,8 +356,7 @@ def self_update(version: str = None) -> int:
     Args:
         version: (optional) specific version to update to
     """
-    python = sys.executable
-    pip = local[python]["-m", "pip"]
+    pip = _pip()
 
     try:
         pkg = "su6"
