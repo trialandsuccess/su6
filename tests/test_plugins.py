@@ -1,5 +1,6 @@
 import json
 
+from su6_plugin_demo.cli import first, second, yet_another
 from typer.testing import CliRunner
 
 from src.su6.cli import app
@@ -41,10 +42,10 @@ def test_demo_properly_added_method1():
     assert result.exit_code == 0
 
     result = runner.invoke(app, ["second"])
-    assert result.exit_code == 0
+    assert result.exit_code == 1
 
     result = runner.invoke(app, ["third"])
-    assert result.exit_code == 0
+    assert result.exit_code == 1
 
     result = runner.invoke(app, ["fourth"])
     assert result.exit_code > 0
@@ -57,3 +58,9 @@ def test_demo_properly_added_method2():
 
     result = runner.invoke(app, ["demo", "nope"])
     assert result.exit_code > 0
+
+
+def test_call_registration():
+    assert not first()
+    assert second(_suppress=True)
+    assert yet_another(_suppress=True)

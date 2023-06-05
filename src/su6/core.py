@@ -32,9 +32,11 @@ EXIT_CODE_COMMAND_NOT_FOUND = 127
 
 PlumbumError = (pb.ProcessExecutionError, pb.ProcessTimedOut, pb.ProcessLineTimedOut, pb.CommandNotFound)
 
+# a Command can return these:
+T_Command_Return = bool | int | None
 # ... here indicates any number of args/kwargs:
 # t command is any @app.command() method, which can have anything as input and bool or int as output
-T_Command: typing.TypeAlias = typing.Callable[..., bool | int | None]
+T_Command: typing.TypeAlias = typing.Callable[..., T_Command_Return]
 # t inner wrapper calls t_command and handles its output. This wrapper gets the same (kw)args as above so ... again
 T_Inner_Wrapper: typing.TypeAlias = typing.Callable[..., int | None]
 # outer wrapper gets the t_command method as input and outputs the inner wrapper,

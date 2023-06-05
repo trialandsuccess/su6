@@ -1,18 +1,17 @@
 """
 Provides a register decorator for third party plugins, and a `include_plugins` (used in cli.py) that loads them.
 """
-import functools
 import typing
 from dataclasses import dataclass, field
 from importlib.metadata import entry_points
 
 from typer import Typer
 
-from .core import T_Command, with_exit_code
+from .core import T_Command, T_Command_Return, with_exit_code
 
 
 @dataclass
-class Registration:
+class PluginRegistration:
     """
     When using the @register decorator, a Registration is created.
 
@@ -36,12 +35,22 @@ class Registration:
         """
         return True
 
+    def __call__(self, *args: typing.Any, **kwargs: typing.Any) -> T_Command_Return:
+        """
+        You can still use a Plugin Registration as a normal function.
+        """
+        return self.func(*args, **kwargs)
 
-T_Inner = typing.Callable[[T_Command, typing.Any, typing.Any], Registration]
+
+T_Inner = typing.Callable[[T_Command], PluginRegistration]
 
 
 @typing.overload
-def register(func_outer: None = None, *a_outer: typing.Any, **kw_outer: typing.Any) -> T_Inner:
+def register(
+    func_outer: None = None,
+    *a_outer: typing.Any,
+    **kw_outer: typing.Any,
+) -> T_Inner:
     """
     If func outer is None, a callback will be created that will return a Registration later.
 
@@ -52,7 +61,11 @@ def register(func_outer: None = None, *a_outer: typing.Any, **kw_outer: typing.A
 
 
 @typing.overload
-def register(func_outer: T_Command = None, *a_outer: typing.Any, **kw_outer: typing.Any) -> Registration:
+def register(
+    func_outer: T_Command,
+    *a_outer: typing.Any,
+    **kw_outer: typing.Any,
+) -> PluginRegistration:
     """
     If func outer is a command, a registration will be created.
 
@@ -63,8 +76,10 @@ def register(func_outer: T_Command = None, *a_outer: typing.Any, **kw_outer: typ
 
 
 def register(
-    func_outer: T_Command | None = None, *a_outer: typing.Any, **kw_outer: typing.Any
-) -> Registration | T_Inner:
+    func_outer: T_Command | None = None,
+    *a_outer: typing.Any,
+    **kw_outer: typing.Any,
+) -> PluginRegistration | T_Inner:
     """
     Decorator used to add a top-level command to `su6`.
 
@@ -78,21 +93,21 @@ def register(
     if func_outer:
         # @register
         # def func
-        return Registration(func_outer, a_outer, kw_outer)
+        return PluginRegistration(func_outer, a_outer, kw_outer)
 
-    @functools.wraps(func_outer)
-    def inner(func_inner: T_Command, *a_inner: typing.Any, **kw_inner: typing.Any) -> Registration:
+    # @functools.wraps(func_outer)
+    def inner(func_inner: T_Command) -> PluginRegistration:
         # @register()
         # def func
 
         # combine args/kwargs from inner and outer, just to be sure they are passed.
-        return Registration(func_inner, a_outer + a_inner, kw_outer | kw_inner)
+        return PluginRegistration(func_inner, a_outer, kw_outer)
 
     return inner
 
 
 # list of registrations
-T_Commands = list[Registration]
+T_Commands = list[PluginRegistration]
 
 # key: namespace
 # value: app instance, docstring for 'help'
