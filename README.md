@@ -4,7 +4,7 @@
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/su6.svg)](https://pypi.org/project/su6)  
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)  
-[![su6 checks](https://github.com/robinvandernoord/su6-checker/actions/workflows/su6.yml/badge.svg)](https://github.com/robinvandernoord/su6-checker/actions)
+[![su6 checks](https://github.com/robinvandernoord/su6-checker/actions/workflows/su6.yml/badge.svg?branch=development)](https://github.com/robinvandernoord/su6-checker/actions)
 ![coverage.svg](coverage.svg)
 
 -----
