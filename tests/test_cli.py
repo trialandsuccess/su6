@@ -6,8 +6,13 @@ import pytest
 from typer.testing import CliRunner
 
 from src.su6.__about__ import __version__
-from src.su6.cli import _check_tool, app
-from src.su6.core import EXIT_CODE_COMMAND_NOT_FOUND, GREEN_CIRCLE, RED_CIRCLE, PlumbumError
+from src.su6.cli import app, run_tool
+from src.su6.core import (
+    EXIT_CODE_COMMAND_NOT_FOUND,
+    GREEN_CIRCLE,
+    RED_CIRCLE,
+    PlumbumError,
+)
 
 # by default, click's cli runner mixes stdout and stderr for some reason...
 runner = CliRunner(mix_stderr=False)
@@ -199,7 +204,7 @@ def test_all_bad():
 
 
 def test_command_not_found():
-    fake_tool = _check_tool("xxx-should-never-exist-xxx")
+    fake_tool = run_tool("xxx-should-never-exist-xxx")
 
     assert fake_tool == EXIT_CODE_COMMAND_NOT_FOUND
 
@@ -360,9 +365,7 @@ def test_stop_after_first_failure():
 
 def test_show_config_callback():
     # text
-    args = [
-        "--show-config"
-    ]
+    args = ["--show-config"]
     result = runner.invoke(app, args)
     assert result.exit_code == 0
     assert "ApplicationState(" in result.stdout and "Config(" in result.stdout
@@ -379,4 +382,4 @@ def test_show_config_callback():
     assert result.exit_code == 0
 
     data = json.loads(result.stdout)
-    assert "Verbosity.verbose" in data['verbosity']
+    assert "Verbosity.verbose" in data["verbosity"]
