@@ -115,6 +115,13 @@ stop-after-first-failure = false
 coverage = 100
 badge = true
 
+[tool.su6.demo]
+boolean-arg = true
+optional-with-default = "overridden"
+
+[tool.su6.demo.extra]
+more = true
+
 [tool.black]
 target-version = ["py311"]
 line-length = 120

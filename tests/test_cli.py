@@ -153,9 +153,9 @@ def test_pydocstyle_bad():
 
 def test_all_good():
     args = ["--config", str(EXAMPLES_PATH / "except_pytest.toml"), "all", GOOD_CODE]
+    # args = ["--config", str(EXAMPLES_PATH / "except_pytest.toml"), "--show-config"]
     result = runner.invoke(app, args)
     assert result.exit_code == 0
-
     args = [
         "--config",
         str(EXAMPLES_PATH / "except_pytest.toml"),

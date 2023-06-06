@@ -11,7 +11,7 @@ import sys
 import tomllib
 import types
 import typing
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, field
 
 import black.files
 import plumbum.commands.processes as pb
@@ -272,8 +272,56 @@ C = typing.TypeVar("C", bound=T_Command)
 DEFAULT_BADGE = "coverage.svg"
 
 
+class Singleton(type):
+    """
+    Every instance of a singleton shares the same object underneath.
+
+    Can be used as a metaclass:
+    Example:
+        class AbstractConfig(metaclass=Singleton):
+
+    Source: https://stackoverflow.com/questions/6760685/creating-a-singleton-in-python
+    """
+
+    _instances: dict[typing.Type[typing.Any], typing.Type[typing.Any]] = {}
+
+    def __call__(self, *args: typing.Any, **kwargs: typing.Any) -> typing.Type[typing.Any]:
+        """
+        When a class is instantiated (e.g. `AbstractConfig()`), __call__ is called. This overrides the default behavior.
+        """
+        if self not in self._instances:
+            self._instances[self] = super(Singleton, self).__call__(*args, **kwargs)
+        return self._instances[self]
+
+    @staticmethod
+    def clear():
+        """
+        Use to remove old instances.
+
+        (otherwise e.g. pytest will crash)
+        """
+        Singleton._instances.clear()
+
+class AbstractConfig(metaclass=Singleton):
+    """
+    Used by state.config and plugin configs.
+    """
+
+    def update(self, strict: bool = True, **kw: typing.Any) -> None:
+        """
+        Set the config values.
+
+        Args:
+            strict: by default, setting a new/unannotated property will raise an error. Set strict to False to allow it.
+        """
+        for key, value in kw.items():
+            if strict and key not in self.__annotations__:
+                raise KeyError(f"{self.__class__.__name__} does not have a property {key} and strict mode is enabled.")
+            setattr(self, key, value)
+
+
 @dataclass
-class Config:
+class Config(AbstractConfig):
     """
     Used as typed version of the [tool.su6] part of pyproject.toml.
 
@@ -294,6 +342,7 @@ class Config:
         """
         Update the value of badge to the default path.
         """
+        self.__raw: dict[str, typing.Any] = {}
         if self.badge is True:  # pragma: no cover
             # no cover because pytest can't test pytest :C
             self.badge = DEFAULT_BADGE
@@ -310,6 +359,20 @@ class Config:
             return [_ for _ in options if _.__name__ not in self.exclude]
         # if no include or excludes passed, just run all!
         return options
+
+    def set_raw(self, raw: dict[str, typing.Any]) -> None:
+        """
+        Set the raw config dict (from pyproject.toml).
+
+        Used to later look up Plugin config.
+        """
+        self.__raw.update(raw)
+
+    def get_raw(self) -> dict[str, typing.Any]:
+        """
+        Get the raw config dict (to load Plugin config).
+        """
+        return self.__raw or {}
 
 
 MaybeConfig: typing.TypeAlias = typing.Optional[Config]
@@ -418,7 +481,9 @@ def _get_su6_config(overwrites: dict[str, typing.Any], toml_path: str = None) ->
     su6_config_dict = _convert_config(su6_config_dict)
     su6_config_dict = _ensure_types(su6_config_dict, Config.__annotations__)
 
-    return Config(**su6_config_dict)
+    config = Config(**su6_config_dict)
+    config.set_raw(full_config["tool"]["su6"])
+    return config
 
 
 def get_su6_config(verbosity: Verbosity = DEFAULT_VERBOSITY, toml_path: str = None, **overwrites: typing.Any) -> Config:
@@ -505,9 +570,17 @@ class ApplicationState:
     config_file: typing.Optional[str] = None  # will be filled with black's search logic
     config: MaybeConfig = None
 
+    def __post_init__(self) -> None:
+        """
+        Store registered plugin config.
+        """
+        self._plugins: dict[str, AbstractConfig] = {}
+
     def load_config(self, **overwrites: typing.Any) -> Config:
         """
         Load the su6 config from pyproject.toml (or other config_file) with optional overwriting settings.
+
+        Also updates attached plugin configs.
         """
         if "verbosity" in overwrites:
             self.verbosity = overwrites["verbosity"]
@@ -517,7 +590,55 @@ class ApplicationState:
             self.output_format = overwrites.pop("output_format")
 
         self.config = get_su6_config(toml_path=self.config_file, **overwrites)
+        self._setup_plugin_config_defaults()
         return self.config
+
+    def attach_plugin_config(self, name: str, config_cls: AbstractConfig) -> None:
+        """
+        Add a new plugin-specific config to be loaded later with load_config().
+
+        Called from plugins.py when an @registered PluginConfig is found.
+        """
+        self._plugins[name] = config_cls
+
+    def _get_plugin_specific_config_from_raw(self, key: str) -> dict[str, typing.Any]:
+        """
+        Plugin Config keys can be nested, so this method traverses the raw config dictionary to find the right level.
+
+        Example:
+            @register(config_key="demo.extra")
+            class MoreDemoConfig(PluginConfig):
+                more: bool
+
+            -> data['tool']['su6']['demo']['extra']
+        """
+        config = self.get_config()
+        raw = config.get_raw()
+
+        parts = key.split(".")
+        while parts:
+            raw = raw[parts.pop(0)]
+
+        return raw
+
+    def _setup_plugin_config_defaults(self) -> None:
+        """
+        After load_config, the raw data is used to also fill registered plugin configs.
+        """
+        for name, config_instance in self._plugins.items():
+            plugin_config = self._get_plugin_specific_config_from_raw(name)
+
+            plugin_config = _convert_config(plugin_config)
+            plugin_config = _ensure_types(plugin_config, config_instance.__annotations__)
+
+            # config_cls should be a singleton so this instance == plugin instance
+            config_instance.update(**plugin_config)
+
+    def get_config(self) -> Config:
+        """
+        Get a filled config instance.
+        """
+        return self.config or self.load_config()
 
     def update_config(self, **values: typing.Any) -> Config:
         """
@@ -527,12 +648,11 @@ class ApplicationState:
             `config = state.update_config(directory='src')`
             This will update the state's config and return the same object with the updated settings.
         """
-        existing_config = self.load_config() if self.config is None else self.config
+        existing_config = self.get_config()
 
         values = _convert_config(values)
-        # replace is dataclass' update function
-        self.config = replace(existing_config, **values)
-        return self.config
+        existing_config.update(**values)
+        return existing_config
 
 
 state = ApplicationState()

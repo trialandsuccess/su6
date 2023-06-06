@@ -31,7 +31,7 @@ from .core import (
     run_tool,
     state,
     warn,
-    with_exit_code,
+    with_exit_code, Singleton,
 )
 from .plugins import include_plugins
 
@@ -40,7 +40,7 @@ app = typer.Typer()
 include_plugins(app)
 
 # 'directory' is an optional cli argument to many commands, so we define the type here for reuse:
-T_directory: typing.TypeAlias = typing.Annotated[str, typer.Argument()]  # = "."
+T_directory: typing.TypeAlias = typing.Annotated[str, typer.Argument()]
 
 
 @app.command()
@@ -434,6 +434,8 @@ def main(
         version: display current version?
 
     """
+    Singleton.clear()
+
     state.load_config(config_file=config, verbosity=verbosity, output_format=output_format)
 
     if show_config:
