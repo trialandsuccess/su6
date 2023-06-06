@@ -294,13 +294,14 @@ class Singleton(type):
         return self._instances[self]
 
     @staticmethod
-    def clear():
+    def clear() -> None:
         """
         Use to remove old instances.
 
         (otherwise e.g. pytest will crash)
         """
         Singleton._instances.clear()
+
 
 class AbstractConfig(metaclass=Singleton):
     """

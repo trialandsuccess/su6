@@ -193,6 +193,34 @@ def register(
         return inner
 
 
+T = typing.TypeVar("T")
+
+
+class BoundMethodOf(typing.Protocol[T]):
+    """
+    Protocol to define properties that a bound method has.
+    """
+
+    __self__: T
+    __name__: str  # noqa: A003 - property does exist on the class
+    __doc__: typing.Optional[str]  # noqa: A003 - property does exist on the class
+
+    def __call__(self, a: int) -> str:  # pragma: no cover
+        """
+        Indicates this Protocol type can be called.
+        """
+
+
+Unbound = typing.Callable[..., typing.Any]
+
+
+def unbind(meth: BoundMethodOf[typing.Any] | Unbound) -> typing.Optional[Unbound]:
+    """
+    Extract the original function (which has a different id) from a class method.
+    """
+    return getattr(meth, "__func__", None)
+
+
 @dataclass()
 class PluginLoader:
     app: Typer
@@ -218,7 +246,7 @@ class PluginLoader:
         # registrations.clear()
         ...
 
-    def _load_plugin(self, plugin: EntryPoint) -> None:
+    def _load_plugin(self, plugin: EntryPoint) -> list[str]:
         """
         Look for typer instances and registered commands and configs in an Entrypoint.
 
@@ -228,24 +256,29 @@ class PluginLoader:
         In this case, the entrypoint 'demo' is defined and points to the cli.py module,
         which gets loaded with `plugin.load()` below.
         """
+        result = []
         plugin_module = plugin.load()
+
         for item in dir(plugin_module):
             if item.startswith("_"):
                 continue
 
             possible_command = getattr(plugin_module, item)
 
-            registration = registrations.get(id(possible_command))
+            # get method by id (in memory) or first unbind from class and then get by id
+            registration = registrations.get(id(possible_command)) or registrations.get(id(unbind(possible_command)))
 
             if isinstance(possible_command, Typer):
-                self._add_subcommand(plugin.name, possible_command, plugin_module.__doc__)
+                result += self._add_subcommand(plugin.name, possible_command, plugin_module.__doc__)
             elif registration and registration.what == "command":
-                self._add_command(plugin.name, typing.cast(Registration[T_Command], registration))
+                result += self._add_command(plugin.name, typing.cast(Registration[T_Command], registration))
             elif registration and registration.what == "config":
-                self._add_config(plugin.name, typing.cast(Registration[T_PluginConfig], registration))
+                result += self._add_config(plugin.name, typing.cast(Registration[T_PluginConfig], registration))
                 # else: ignore
 
-    def _add_command(self, _: str, registration: Registration[T_Command]) -> None:
+        return result
+
+    def _add_command(self, _: str, registration: Registration[T_Command]) -> list[str]:
         """
         When a Command Registration is found, it is added to the top-level namespace.
         """
@@ -253,8 +286,9 @@ class PluginLoader:
             registration.wrapped = with_exit_code()(registration.wrapped)
         # adding top-level commands
         self.app.command(*registration.args, **registration.kwargs)(registration.wrapped)
+        return [f"command {_}"]
 
-    def _add_config(self, name: str, registration: Registration[T_PluginConfig]) -> None:
+    def _add_config(self, name: str, registration: Registration[T_PluginConfig]) -> list[str]:
         """
         When a Config Registration is found, the Singleton data is updated with config from pyproject.toml.
 
@@ -276,9 +310,11 @@ class PluginLoader:
             inst.attach_state(state)
 
         state.attach_plugin_config(key, inst)
+        return [f"config {name}"]
 
-    def _add_subcommand(self, name: str, subapp: Typer, doc: str) -> None:
+    def _add_subcommand(self, name: str, subapp: Typer, doc: str) -> list[str]:
         self.app.add_typer(subapp, name=name, help=doc)
+        return [f"subcommand {name}"]
 
 
 def include_plugins(app: Typer, _with_exit_code: bool = True) -> None:
@@ -297,43 +333,3 @@ def include_plugins(app: Typer, _with_exit_code: bool = True) -> None:
 # todo:
 # - add to 'all'
 # - add to 'fix'
-# - adding config keys
-
-if typing.TYPE_CHECKING:
-    # for mypy checking
-    @register
-    def without_braces() -> None:
-        ...
-
-
-    @register()
-    def with_braces() -> None:
-        ...
-
-
-    @register(name="other")
-    def with_kwargs() -> None:
-        ...
-
-
-    class NormalClass(PluginConfig):
-        ...
-
-
-    @register
-    class ConfigWithoutBraces(PluginConfig):
-        ...
-
-
-    @register()
-    class ConfigWithBraces(PluginConfig):
-        ...
-
-
-    cls1 = NormalClass
-    inst1 = cls1()
-    cls2 = ConfigWithoutBraces
-    inst2 = cls2()
-    # fixme:
-    cls3 = ConfigWithBraces
-    inst3 = cls3()

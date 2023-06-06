@@ -1,0 +1,6 @@
+[tool.su6.demo.extra]
+prop = "filled in"
+with-other-default = false
+
+[tool.su6.demo2]
+empty = ""

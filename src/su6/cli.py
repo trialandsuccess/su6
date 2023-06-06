@@ -23,6 +23,7 @@ from .core import (
     RED_CIRCLE,
     Format,
     PlumbumError,
+    Singleton,
     Verbosity,
     dump_tools_with_results,
     info,
@@ -31,7 +32,7 @@ from .core import (
     run_tool,
     state,
     warn,
-    with_exit_code, Singleton,
+    with_exit_code,
 )
 from .plugins import include_plugins
 
