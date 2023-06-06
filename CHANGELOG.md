@@ -2,6 +2,16 @@
 
 <!--next-version-placeholder-->
 
+## v1.1.0 (2023-06-06)
+### Feature
+
+* **plugin:** Change command registration system and allow config; coverage is still low ([`1124a9c`](https://github.com/robinvandernoord/su6-checker/commit/1124a9cbf5a2deb5b451b06bed8169874560f162))
+* **plugin:** WIP to add plugin-specific config ([`24c2456`](https://github.com/robinvandernoord/su6-checker/commit/24c2456bf2fc2bd5aeb7602467aadfb0d9241b92))
+
+### Documentation
+
+* **badge:** Pinned su6 checks gh action badge to specific branch instead of latest check ([`a4e525b`](https://github.com/robinvandernoord/su6-checker/commit/a4e525be4477319c2bfad7eb9864241fadfdf7f9))
+
 ## v1.0.0 (2023-06-05)
 ### Feature
 
