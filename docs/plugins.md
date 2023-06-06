@@ -98,3 +98,81 @@ def other_check():
         print(GREEN_CIRCLE, "great success!")
 
 ```
+
+## Plugin Config
+
+A plugin can also load plugin-specific config from the user-defined config file (usually pyproject.toml).
+This config works similar to the `state.config` of this module.
+Keys are typed, and will throw a type error if the type in the toml file does not match with the annotation.
+This behavior can be disabled by passing `strict=False` to the `@register` call.
+
+Default config can be updated with for example command arguments with the `.update` method.
+If a value is `None`, the key will NOT be updated to preserve defaults. Other Falsey values will overwrite the defaults.
+
+Config Classes are Singletons, so creating a new instance of a config class will always have the same data as other
+instances.
+
+```toml
+[project.entry-points."su6"]
+demo = "su6_plugin_demo.cli"
+
+# ...
+[tool.su6.demo]
+some = "config"
+
+[tool.su6.demo.extra]
+more = ["config", "here"]
+
+[tool.su6.demo.untyped]
+number = 3
+```
+
+```python
+from su6.plugins import register, PluginConfig
+
+
+@register
+class MyConfig(PluginConfig):
+    some: str
+
+
+@register(config_key="demo.extra")
+class ExtraConfig(PluginConfig):
+    more: list[str]
+
+
+@register(with_state=True, strict=False, config_key="demo.untyped")
+class StateConfig(PluginConfig):
+    number: str
+
+
+my_config = MyConfig()
+extra_config = ExtraConfig()
+state_config = StateConfig()
+
+
+# note: config is not set up at this moment yet,
+# it is only available in a command since the user can define `--config` 
+# and those arguments are parsed after importing plugin modules.
+
+@register
+def command(optional_argument: str = None):
+    assert my_config.some == "config"
+    assert extra_config.more == ["config", "here"]
+    assert state_config.state
+
+    my_config.update(some="new!")
+    assert my_config.some != "config"
+
+    assert MyConfig() is my_config
+
+    # will update 'some' if optional_argument is not None
+    my_config.update(some=optional_argument)
+
+    # will error since new_key is not defined in MyConfig:
+    my_config.update(new_key=optional_argument)
+
+    # will work and create a new (untyped) property:
+    my_config.update(new_key=optional_argument, strict=False)
+
+```

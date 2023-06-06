@@ -23,9 +23,9 @@ This package will hopefully help achieve that!
 
 ```console
 # quick install with all possible checkers:
-pip install su6[all] .
+pip install su6[all]
 # or pick and choose checkers:
-pip install [black,bandit,pydocstyle] .
+pip install [black,bandit,pydocstyle]
 ```
 
 **Note**: this package does not work well with `pipx`, since a lot of the tools need to be in the same (virtual)
