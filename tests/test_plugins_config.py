@@ -1,30 +1,11 @@
-import json
 from dataclasses import dataclass
 
 import pytest
-from su6_plugin_demo.cli import first, second, yet_another
-from typer.testing import CliRunner
 
 from src.su6 import state
 from src.su6.cli import app
-from src.su6.core import Singleton, ApplicationState
+from src.su6.core import Singleton
 from src.su6.plugins import PluginConfig, PluginLoader, register
-
-
-def test_singleton():
-    class MySingleton(PluginConfig):
-        ...
-
-    inst1 = MySingleton()
-    inst2 = MySingleton()
-    assert inst1 is inst2
-
-    with pytest.raises(KeyError):
-        inst1.update(newkey="illegal")
-
-    inst2.update(newkey="legal", strict=False)
-
-    assert inst1.newkey == "legal"
 
 
 class FakeModule1:
@@ -37,6 +18,10 @@ class FakeModule1:
         prop: str
         with_default: bool = True
         with_other_default: bool = True
+
+    @register(config_key="demo2", strict=False)
+    class Untyped(PluginConfig):
+        empty: int
 
 
 @dataclass
@@ -56,6 +41,7 @@ def test_plugin_config():
 
     inst1 = FakeModule1.MyPluginConfig()
     inst2 = FakeModule1.NoState()
+    inst3 = FakeModule1.Untyped()
 
     assert inst1.state
     assert not getattr(inst2, "state", None)
@@ -82,3 +68,31 @@ def test_plugin_config():
 
     inst1.attach_extra("inst2", inst2)
     assert inst1._get("inst2") is inst2
+
+    assert type(inst3.empty) != inst3.__annotations__['empty']
+
+
+def test_singleton():
+    Singleton.clear()
+    assert not Singleton._instances
+
+    class MySingletonState(PluginConfig):
+        ...
+
+    inst1 = MySingletonState()
+    inst2 = MySingletonState()
+    assert inst1 is inst2
+
+    with pytest.raises(KeyError):
+        inst1.update(newkey="illegal")
+
+    inst2.update(newkey="legal", strict=False)
+    inst2.update(newkey=None, strict=False)
+
+    assert inst1.newkey == "legal"  # and NOT None
+    inst2.update(newkey=None, strict=False, allow_none=True)
+    assert inst1.newkey is None
+
+    assert inst1.__class__ in Singleton._instances
+    Singleton.clear(inst1)
+    assert inst2.__class__ not in Singleton._instances

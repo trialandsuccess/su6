@@ -211,6 +211,8 @@ def pytest(
     badge: bool = None,
     k: typing.Annotated[str, typer.Option("-k")] = None,  # fw to pytest
     s: typing.Annotated[bool, typer.Option("-s")] = False,  # fw to pytest
+    v: typing.Annotated[bool, typer.Option("-v")] = False,  # fw to pytest
+    x: typing.Annotated[bool, typer.Option("-x")] = False,  # fw to pytest
 ) -> int:  # pragma: no cover
     """
     Runs all pytests.
@@ -222,8 +224,10 @@ def pytest(
         coverage: threshold for coverage (in %)
         badge: generate coverage badge (svg)? If you want to change the name, do this in pyproject.toml
 
-        k: pytest -k <str> option
-        s: pytest -s option
+        k: pytest -k <str> option (run specific tests)
+        s: pytest -s option (show output)
+        v: pytest -v option (verbose)
+        x: pytest -x option (stop after first failure)
 
     Example:
         > su6 pytest --coverage 50
@@ -249,6 +253,10 @@ def pytest(
         args.extend(["-k", k])
     if s:
         args.append("-s")
+    if v:
+        args.append("-v")
+    if x:
+        args.append("-x")
 
     if html:
         args.extend(["--cov-report", "html"])
@@ -435,7 +443,10 @@ def main(
         version: display current version?
 
     """
-    Singleton.clear()
+    if state.config:
+        # if a config already exists, it's outdated, so we clear it.
+        # we don't clear everything since Plugin configs may be already cached.
+        Singleton.clear(state.config)
 
     state.load_config(config_file=config, verbosity=verbosity, output_format=output_format)
 

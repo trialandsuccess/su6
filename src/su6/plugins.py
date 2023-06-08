@@ -309,6 +309,9 @@ class PluginLoader:
         if registration.kwargs.pop("with_state", False):
             inst.attach_state(state)
 
+        if registration.kwargs.pop("strict", True) is False:
+            inst._strict = False
+
         state.attach_plugin_config(key, inst)
         return [f"config {name}"]
 

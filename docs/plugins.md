@@ -128,6 +128,7 @@ number = 3
 ```
 
 ```python
+import contextlib
 from su6.plugins import register, PluginConfig
 
 
@@ -169,8 +170,9 @@ def command(optional_argument: str = None):
     # will update 'some' if optional_argument is not None
     my_config.update(some=optional_argument)
 
-    # will error since new_key is not defined in MyConfig:
-    my_config.update(new_key=optional_argument)
+    with contextlib.suppress(KeyError):
+        # will error since new_key is not defined in MyConfig:
+        my_config.update(new_key=optional_argument)
 
     # will work and create a new (untyped) property:
     my_config.update(new_key=optional_argument, strict=False)

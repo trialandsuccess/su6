@@ -272,7 +272,7 @@ C = typing.TypeVar("C", bound=T_Command)
 DEFAULT_BADGE = "coverage.svg"
 
 
-class Singleton(type):
+class SingletonMeta(type):
     """
     Every instance of a singleton shares the same object underneath.
 
@@ -289,35 +289,54 @@ class Singleton(type):
         """
         When a class is instantiated (e.g. `AbstractConfig()`), __call__ is called. This overrides the default behavior.
         """
+
         if self not in self._instances:
-            self._instances[self] = super(Singleton, self).__call__(*args, **kwargs)
+            self._instances[self] = super(SingletonMeta, self).__call__(*args, **kwargs)
+
         return self._instances[self]
 
     @staticmethod
-    def clear() -> None:
+    def clear(instance: "T_SingletonInstance" = None) -> None:
         """
         Use to remove old instances.
 
         (otherwise e.g. pytest will crash)
         """
-        Singleton._instances.clear()
+        if instance:
+            SingletonMeta._instances.pop(instance.__class__, None)
+        else:
+            SingletonMeta._instances.clear()
 
 
-class AbstractConfig(metaclass=Singleton):
+class Singleton(metaclass=SingletonMeta):
+    ...
+
+
+T_SingletonInstance = typing.Type[Singleton]
+
+
+class AbstractConfig(Singleton):
     """
     Used by state.config and plugin configs.
     """
 
-    def update(self, strict: bool = True, **kw: typing.Any) -> None:
+    _strict = True
+
+    def update(self, strict: bool = True, allow_none: bool = False, **kw: typing.Any) -> None:
         """
         Set the config values.
 
         Args:
             strict: by default, setting a new/unannotated property will raise an error. Set strict to False to allow it.
+            allow_none: by default, None values are filtered away. Set to True to allow them.
         """
         for key, value in kw.items():
+            if value is None and not allow_none:
+                continue
+
             if strict and key not in self.__annotations__:
                 raise KeyError(f"{self.__class__.__name__} does not have a property {key} and strict mode is enabled.")
+
             setattr(self, key, value)
 
 
@@ -630,7 +649,8 @@ class ApplicationState:
             plugin_config = self._get_plugin_specific_config_from_raw(name)
 
             plugin_config = _convert_config(plugin_config)
-            plugin_config = _ensure_types(plugin_config, config_instance.__annotations__)
+            if config_instance._strict:
+                plugin_config = _ensure_types(plugin_config, config_instance.__annotations__)
 
             # config_cls should be a singleton so this instance == plugin instance
             config_instance.update(**plugin_config)
