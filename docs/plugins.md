@@ -1,7 +1,8 @@
 # Plugins
 
 To add more checkers or other functionality, `su6` can be extended with plugins.  
-You can use [this template repository] to get some boilerplate code.
+You can use [this template repository](https://github.com/robinvandernoord/su6-plugin-template) to get some boilerplate
+code, and checkout [the demo plugin](https://github.com/robinvandernoord/su6-plugin-demo) for more example code.
 
 ## pyproject.toml
 
