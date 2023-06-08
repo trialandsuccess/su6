@@ -2,6 +2,15 @@
 
 <!--next-version-placeholder-->
 
+## v1.2.0 (2023-06-08)
+### Feature
+
+* **config:** `allow_none` in Config.update and @register(strict=False) for Plugin Config ([`3ef40ae`](https://github.com/robinvandernoord/su6-checker/commit/3ef40ae6d4ed2cb88ef36863f9b6a1a98d63deb1))
+
+### Documentation
+
+* **plugins:** Started describing plugin config ([`500a525`](https://github.com/robinvandernoord/su6-checker/commit/500a525143fc51332454826431c6c69f641cff18))
+
 ## v1.1.0 (2023-06-06)
 ### Feature
 
