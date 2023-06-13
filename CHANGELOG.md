@@ -2,6 +2,15 @@
 
 <!--next-version-placeholder-->
 
+## v1.2.1 (2023-06-13)
+### Fix
+
+* **pytest:** Test doesn't depend on demo plugin anymore ([`0051514`](https://github.com/robinvandernoord/su6-checker/commit/005151456203915085200f530153f191eb7f8608))
+
+### Documentation
+
+* **plugins:** Link to template and demo repo. ([`40088ca`](https://github.com/robinvandernoord/su6-checker/commit/40088cac73c5c6417188283604f074d74fc399b1))
+
 ## v1.2.0 (2023-06-08)
 ### Feature
 
