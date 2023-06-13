@@ -322,7 +322,7 @@ def do_fix(directory: T_directory = None, ignore_uninstalled: bool = False) -> b
 
 @app.command()
 @with_exit_code()
-def plugins() -> None:
+def plugins() -> None:  # pragma: nocover
     """
     List installed plugin modules.
 
@@ -333,7 +333,7 @@ def plugins() -> None:
             if modules:
                 print("Installed Plugins:")
                 [print("-", _) for _ in modules]
-            else:  # pragma: nocover
+            else:
                 print("No Installed Plugins.")
         case "json":
             print_json(

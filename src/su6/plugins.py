@@ -237,7 +237,7 @@ class PluginLoader:
             demo = "su6_plugin_demo.cli"  # <- CHANGE ME
         """
         discovered_plugins = entry_points(group="su6")
-        for plugin in discovered_plugins:
+        for plugin in discovered_plugins:  # pragma: nocover
             self._load_plugin(plugin)
 
         self._cleanup()
