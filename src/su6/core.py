@@ -289,14 +289,13 @@ class SingletonMeta(type):
         """
         When a class is instantiated (e.g. `AbstractConfig()`), __call__ is called. This overrides the default behavior.
         """
-
         if self not in self._instances:
             self._instances[self] = super(SingletonMeta, self).__call__(*args, **kwargs)
 
         return self._instances[self]
 
     @staticmethod
-    def clear(instance: "T_SingletonInstance" = None) -> None:
+    def clear(instance: "Singleton" = None) -> None:
         """
         Use to remove old instances.
 
@@ -309,10 +308,9 @@ class SingletonMeta(type):
 
 
 class Singleton(metaclass=SingletonMeta):
-    ...
-
-
-T_SingletonInstance = typing.Type[Singleton]
+    """
+    Mixin to make a class a singleton.
+    """
 
 
 class AbstractConfig(Singleton):
