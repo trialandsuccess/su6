@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.3.1 (2023-06-15)
+
+### Fix
+
+* **dep:** Bump configuraptor required version ([`fc39b57`](https://github.com/robinvandernoord/su6-checker/commit/fc39b573a35d3cd96c423139fcc73b27559eb18d))
+
 ## v1.3.0 (2023-06-15)
 
 ### Feature
