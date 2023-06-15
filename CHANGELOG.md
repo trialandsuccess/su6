@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.3.0 (2023-06-15)
+
+### Feature
+
+* **config:** Started using `configuraptor` ([`533dfa2`](https://github.com/robinvandernoord/su6-checker/commit/533dfa2cc5702c5c9740ac32c04db9c1ea3804b1))
+
 ## v1.2.1 (2023-06-13)
 ### Fix
 
