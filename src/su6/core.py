@@ -48,7 +48,9 @@ def print_json(data: typing.Any) -> None:
     """
     Take a dict of {command: output} or the State and print it.
     """
-    print(json.dumps(data, default=str, indent=4))
+    indent = state.get_config().json_indent or None
+    # none is different from 0 for the indent kwarg, but 0 will be changed to None for this module
+    print(json.dumps(data, default=str, indent=indent))
 
 
 def dump_tools_with_results(tools: list[T_Command], results: list[int | bool | None]) -> None:
@@ -310,6 +312,7 @@ class Config(AbstractConfig):
     include: list[str] = field(default_factory=list)
     exclude: list[str] = field(default_factory=list)
     stop_after_first_failure: bool = False
+    json_indent: int = 4
 
     ### pytest ###
     coverage: typing.Optional[float] = None  # only relevant for pytest

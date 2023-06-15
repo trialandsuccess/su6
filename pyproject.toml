@@ -114,6 +114,8 @@ stop-after-first-failure = false
 # pytest:
 coverage = 100
 badge = true
+# --format json indent
+json-indent = 4
 
 [tool.su6.demo]
 boolean-arg = true
