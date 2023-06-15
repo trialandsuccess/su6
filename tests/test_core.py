@@ -1,18 +1,16 @@
 import contextlib
 
 import pytest
+from configuraptor.errors import ConfigErrorInvalidType
 
 from src.su6.core import (
     ApplicationState,
     Config,
-    ConfigError,
     Verbosity,
-    _ensure_types,
     _get_su6_config,
     check_type,
     get_su6_config,
 )
-
 from ._shared import EXAMPLES_PATH
 
 
@@ -57,14 +55,14 @@ def test_check_type():
     assert not check_type([1, 2, 3], list[str])
 
 
-def test_ensure_types():
-    assert _ensure_types({"float": 3.5}, {"float": float})
-    with pytest.raises(ConfigError):
-        try:
-            _ensure_types({"float": "not-a-float"}, {"float": float})
-        except ConfigError as e:
-            assert "float" in str(e) and "str" in str(e)
-            raise e
+# def test_ensure_types():
+#     assert _ensure_types({"float": 3.5}, {"float": float})
+#     with pytest.raises(ConfigError):
+#         try:
+#             _ensure_types({"float": "not-a-float"}, {"float": float})
+#         except ConfigError as e:
+#             assert "float" in str(e) and "str" in str(e)
+#             raise e
 
 
 def test_get_su6_config():
@@ -83,7 +81,7 @@ def test_get_su6_config():
 
     # invalid toml should raise exception on debug verbosity but default on other verbosities
 
-    with pytest.raises(ConfigError):
+    with pytest.raises(ConfigErrorInvalidType):
         get_su6_config(verbosity=Verbosity.debug, toml_path=str(EXAMPLES_PATH / "invalid.toml"))
 
     assert get_su6_config(verbosity=Verbosity.verbose, toml_path=str(EXAMPLES_PATH / "invalid.toml")) == defaults

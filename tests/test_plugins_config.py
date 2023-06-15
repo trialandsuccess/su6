@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 
 import pytest
+from configuraptor import Singleton
 
 from src.su6 import state
 from src.su6.cli import app
-from src.su6.core import Singleton
 from src.su6.plugins import PluginConfig, PluginLoader, register
 
 

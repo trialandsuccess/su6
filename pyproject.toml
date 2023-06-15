@@ -26,6 +26,7 @@ dependencies = [
     "plumbum",
     "black", # for 'find_pyproject_toml'
     "typeguard", # for check_type, used with parsing pyproject.toml
+    "configuraptor >= 1.3", # for config
 ]
 
 [template.plugins.default]

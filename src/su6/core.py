@@ -14,6 +14,7 @@ import typing
 from dataclasses import dataclass, field
 
 import black.files
+import configuraptor
 import plumbum.commands.processes as pb
 import typer
 from plumbum import local
@@ -272,48 +273,7 @@ C = typing.TypeVar("C", bound=T_Command)
 DEFAULT_BADGE = "coverage.svg"
 
 
-class SingletonMeta(type):
-    """
-    Every instance of a singleton shares the same object underneath.
-
-    Can be used as a metaclass:
-    Example:
-        class AbstractConfig(metaclass=Singleton):
-
-    Source: https://stackoverflow.com/questions/6760685/creating-a-singleton-in-python
-    """
-
-    _instances: dict[typing.Type[typing.Any], typing.Type[typing.Any]] = {}
-
-    def __call__(self, *args: typing.Any, **kwargs: typing.Any) -> typing.Type[typing.Any]:
-        """
-        When a class is instantiated (e.g. `AbstractConfig()`), __call__ is called. This overrides the default behavior.
-        """
-        if self not in self._instances:
-            self._instances[self] = super(SingletonMeta, self).__call__(*args, **kwargs)
-
-        return self._instances[self]
-
-    @staticmethod
-    def clear(instance: "Singleton" = None) -> None:
-        """
-        Use to remove old instances.
-
-        (otherwise e.g. pytest will crash)
-        """
-        if instance:
-            SingletonMeta._instances.pop(instance.__class__, None)
-        else:
-            SingletonMeta._instances.clear()
-
-
-class Singleton(metaclass=SingletonMeta):
-    """
-    Mixin to make a class a singleton.
-    """
-
-
-class AbstractConfig(Singleton):
+class AbstractConfig(configuraptor.TypedConfig, configuraptor.Singleton):
     """
     Used by state.config and plugin configs.
     """
@@ -411,53 +371,54 @@ def check_type(value: typing.Any, expected_type: T_typelike) -> bool:
         return False
 
 
-@dataclass
-class ConfigError(Exception):
-    """
-    Raised if pyproject.toml [su6.tool] contains a variable of \
-    which the type does not match that of the corresponding key in Config.
-    """
+# @dataclass
+# class ConfigError(Exception):
+#     """
+#     Raised if pyproject.toml [su6.tool] contains a variable of \
+#     which the type does not match that of the corresponding key in Config.
+#     """
+#
+#     key: str
+#     value: typing.Any
+#     expected_type: type
+#
+#     def __post_init__(self) -> None:
+#         """
+#         Store the actual type of the config variable.
+#         """
+#         self.actual_type = type(self.value)
+#
+#     def __str__(self) -> str:
+#         """
+#         Custom error message based on dataclass values and calculated actual type.
+#         """
+#         return (
+#             f"Config key '{self.key}' had a value ('{self.value}') with a type (`{self.actual_type}`) "
+#             f"that was not expected: `{self.expected_type}` is the required type."
+#         )
 
-    key: str
-    value: typing.Any
-    expected_type: type
 
-    def __post_init__(self) -> None:
-        """
-        Store the actual type of the config variable.
-        """
-        self.actual_type = type(self.value)
-
-    def __str__(self) -> str:
-        """
-        Custom error message based on dataclass values and calculated actual type.
-        """
-        return (
-            f"Config key '{self.key}' had a value ('{self.value}') with a type (`{self.actual_type}`) "
-            f"that was not expected: `{self.expected_type}` is the required type."
-        )
-
+# def _ensure_types(data: dict[str, T], annotations: dict[str, type]) -> dict[str, T | None]:
+#     """
+#     Make sure all values in 'data' are in line with the ones stored in 'annotations'.
+#
+#     If an annotated key in missing from data, it will be filled with None for convenience.
+#     """
+#     warnings.warn("`_ensure_types` Deprecated: should be replaced by configuraptor.")
+#
+#     final: dict[str, T | None] = {}
+#     for key, _type in annotations.items():
+#         compare = data.get(key)
+#         if compare is None:
+#             # skip!
+#             continue
+#         if not check_type(compare, _type):
+#             raise ConfigError(key, value=compare, expected_type=_type)
+#
+#         final[key] = compare
+#     return final
 
 T = typing.TypeVar("T")
-
-
-def _ensure_types(data: dict[str, T], annotations: dict[str, type]) -> dict[str, T | None]:
-    """
-    Make sure all values in 'data' are in line with the ones stored in 'annotations'.
-
-    If an annotated key in missing from data, it will be filled with None for convenience.
-    """
-    final: dict[str, T | None] = {}
-    for key, _type in annotations.items():
-        compare = data.get(key)
-        if compare is None:
-            # skip!
-            continue
-        if not check_type(compare, _type):
-            raise ConfigError(key, value=compare, expected_type=_type)
-
-        final[key] = compare
-    return final
 
 
 def _convert_config(items: dict[str, T]) -> dict[str, T]:
@@ -491,16 +452,15 @@ def _get_su6_config(overwrites: dict[str, typing.Any], toml_path: str = None) ->
     with open(toml_path, "rb") as f:
         full_config = tomllib.load(f)
 
-    su6_config_dict = full_config["tool"]["su6"]
-    su6_config_dict |= overwrites
+    tool_config = full_config["tool"]
 
-    su6_config_dict["pyproject"] = toml_path
-    # first convert the keys, then ensure types. Otherwise, non-matching keys may be removed!
-    su6_config_dict = _convert_config(su6_config_dict)
-    su6_config_dict = _ensure_types(su6_config_dict, Config.__annotations__)
+    config = configuraptor.load_into(Config, tool_config, key="su6")
 
-    config = Config(**su6_config_dict)
-    config.set_raw(full_config["tool"]["su6"])
+    config.update(pyproject=toml_path)
+    config.update(**overwrites)
+    # for plugins:
+    config.set_raw(tool_config["su6"])
+
     return config
 
 
@@ -619,39 +579,14 @@ class ApplicationState:
         """
         self._plugins[name] = config_cls
 
-    def _get_plugin_specific_config_from_raw(self, key: str) -> dict[str, typing.Any]:
-        """
-        Plugin Config keys can be nested, so this method traverses the raw config dictionary to find the right level.
-
-        Example:
-            @register(config_key="demo.extra")
-            class MoreDemoConfig(PluginConfig):
-                more: bool
-
-            -> data['tool']['su6']['demo']['extra']
-        """
-        config = self.get_config()
-        raw = config.get_raw()
-
-        parts = key.split(".")
-        while parts:
-            raw = raw[parts.pop(0)]
-
-        return raw
-
     def _setup_plugin_config_defaults(self) -> None:
         """
         After load_config, the raw data is used to also fill registered plugin configs.
         """
+        config = self.get_config()
+        raw = config.get_raw()
         for name, config_instance in self._plugins.items():
-            plugin_config = self._get_plugin_specific_config_from_raw(name)
-
-            plugin_config = _convert_config(plugin_config)
-            if config_instance._strict:
-                plugin_config = _ensure_types(plugin_config, config_instance.__annotations__)
-
-            # config_cls should be a singleton so this instance == plugin instance
-            config_instance.update(**plugin_config)
+            configuraptor.load_into_instance(config_instance, raw, key=name, strict=config_instance._strict)
 
     def get_config(self) -> Config:
         """

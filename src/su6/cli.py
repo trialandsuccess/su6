@@ -9,6 +9,7 @@ from importlib.metadata import entry_points
 from json import load as json_load
 
 import typer
+from configuraptor import Singleton
 from plumbum import local
 from plumbum.machines import LocalCommand
 from rich import print
@@ -23,7 +24,6 @@ from .core import (
     RED_CIRCLE,
     Format,
     PlumbumError,
-    Singleton,
     Verbosity,
     dump_tools_with_results,
     info,
