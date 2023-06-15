@@ -17,11 +17,10 @@ import black.files
 import configuraptor
 import plumbum.commands.processes as pb
 import typer
+from configuraptor import convert_config
 from plumbum import local
 from plumbum.machines import LocalCommand
 from rich import print
-from typeguard import TypeCheckError
-from typeguard import check_type as _check_type
 
 GREEN_CIRCLE = "🟢"
 YELLOW_CIRCLE = "🟡"
@@ -358,77 +357,11 @@ MaybeConfig: typing.TypeAlias = typing.Optional[Config]
 T_typelike: typing.TypeAlias = type | types.UnionType | types.UnionType
 
 
-def check_type(value: typing.Any, expected_type: T_typelike) -> bool:
+def find_pyproject_toml() -> typing.Optional[str]:
     """
-    Given a variable, check if it matches 'expected_type' (which can be a Union, parameterized generic etc.).
-
-    Based on typeguard but this returns a boolean instead of returning the value or throwing a TypeCheckError
+    Find the project's config toml, looks up until it finds the project root (black's logic).
     """
-    try:
-        _check_type(value, expected_type)
-        return True
-    except TypeCheckError:
-        return False
-
-
-# @dataclass
-# class ConfigError(Exception):
-#     """
-#     Raised if pyproject.toml [su6.tool] contains a variable of \
-#     which the type does not match that of the corresponding key in Config.
-#     """
-#
-#     key: str
-#     value: typing.Any
-#     expected_type: type
-#
-#     def __post_init__(self) -> None:
-#         """
-#         Store the actual type of the config variable.
-#         """
-#         self.actual_type = type(self.value)
-#
-#     def __str__(self) -> str:
-#         """
-#         Custom error message based on dataclass values and calculated actual type.
-#         """
-#         return (
-#             f"Config key '{self.key}' had a value ('{self.value}') with a type (`{self.actual_type}`) "
-#             f"that was not expected: `{self.expected_type}` is the required type."
-#         )
-
-
-# def _ensure_types(data: dict[str, T], annotations: dict[str, type]) -> dict[str, T | None]:
-#     """
-#     Make sure all values in 'data' are in line with the ones stored in 'annotations'.
-#
-#     If an annotated key in missing from data, it will be filled with None for convenience.
-#     """
-#     warnings.warn("`_ensure_types` Deprecated: should be replaced by configuraptor.")
-#
-#     final: dict[str, T | None] = {}
-#     for key, _type in annotations.items():
-#         compare = data.get(key)
-#         if compare is None:
-#             # skip!
-#             continue
-#         if not check_type(compare, _type):
-#             raise ConfigError(key, value=compare, expected_type=_type)
-#
-#         final[key] = compare
-#     return final
-
-T = typing.TypeVar("T")
-
-
-def _convert_config(items: dict[str, T]) -> dict[str, T]:
-    """
-    Converts the config dict (from toml) or 'overwrites' dict in two ways.
-
-    1. removes any items where the value is None, since in that case the default should be used;
-    2. replaces '-' in keys with '_' so it can be mapped to the Config properties.
-    """
-    return {k.replace("-", "_"): v for k, v in items.items() if v is not None}
+    return black.files.find_pyproject_toml((os.getcwd(),))
 
 
 def _get_su6_config(overwrites: dict[str, typing.Any], toml_path: str = None) -> MaybeConfig:
@@ -444,7 +377,7 @@ def _get_su6_config(overwrites: dict[str, typing.Any], toml_path: str = None) ->
                     If a toml_path is provided, that file will be used instead.
     """
     if toml_path is None:
-        toml_path = black.files.find_pyproject_toml((os.getcwd(),))
+        toml_path = find_pyproject_toml()
 
     if not toml_path:
         return None
@@ -475,7 +408,7 @@ def get_su6_config(verbosity: Verbosity = DEFAULT_VERBOSITY, toml_path: str = No
                 If a value is None, the key is not overwritten.
     """
     # strip out any 'overwrites' with None as value
-    overwrites = _convert_config(overwrites)
+    overwrites = convert_config(overwrites)
 
     try:
         if config := _get_su6_config(overwrites, toml_path=toml_path):
@@ -604,7 +537,7 @@ class ApplicationState:
         """
         existing_config = self.get_config()
 
-        values = _convert_config(values)
+        values = convert_config(values)
         existing_config.update(**values)
         return existing_config
 

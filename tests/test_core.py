@@ -8,7 +8,6 @@ from src.su6.core import (
     Config,
     Verbosity,
     _get_su6_config,
-    check_type,
     get_su6_config,
 )
 from ._shared import EXAMPLES_PATH
@@ -46,23 +45,6 @@ def test_verbosity_compare():
 
     with pytest.raises(TypeError):
         assert verbosity_3 == []
-
-
-def test_check_type():
-    assert check_type("str", str | int)
-    assert check_type([1, 2, 3], list[int])
-    assert check_type([1, 2, 3], list[int] | int)
-    assert not check_type([1, 2, 3], list[str])
-
-
-# def test_ensure_types():
-#     assert _ensure_types({"float": 3.5}, {"float": float})
-#     with pytest.raises(ConfigError):
-#         try:
-#             _ensure_types({"float": "not-a-float"}, {"float": float})
-#         except ConfigError as e:
-#             assert "float" in str(e) and "str" in str(e)
-#             raise e
 
 
 def test_get_su6_config():
