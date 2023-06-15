@@ -48,7 +48,7 @@ def print_json(data: typing.Any) -> None:
     """
     Take a dict of {command: output} or the State and print it.
     """
-    print(json.dumps(data, default=str))
+    print(json.dumps(data, default=str, indent=4))
 
 
 def dump_tools_with_results(tools: list[T_Command], results: list[int | bool | None]) -> None:
