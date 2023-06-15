@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.3.2 (2023-06-15)
+
+### Fix
+
+* **json:** Indent for easier reading ([`077f900`](https://github.com/robinvandernoord/su6-checker/commit/077f9005b1bf922ed69843b91f87106f4839bca4))
+
 ## v1.3.1 (2023-06-15)
 
 ### Fix
