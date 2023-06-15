@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.4.0 (2023-06-15)
+
+### Feature
+
+* **json:** Allow json-indent via tool config ([`f4f353c`](https://github.com/robinvandernoord/su6-checker/commit/f4f353cab028cdc37707051f4be829d4f1426fb0))
+
 ## v1.3.2 (2023-06-15)
 
 ### Fix
