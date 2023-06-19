@@ -1,0 +1,20 @@
+<svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" width="1080" height="1080">
+	<title>su6</title>
+	<defs>
+		<image width="768" height="1872" id="img1" href="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48c3ZnIGlkPSJMYWFnXzIiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHZpZXdCb3g9IjAgMCA5NS42OCAyMzMuNiI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOiNiY2U0OTU7fS5jbHMtMntmaWxsOiM5ZGQxYWI7fS5jbHMtM3tmaWxsOiM2YzkxNWM7fS5jbHMtNHtjbGlwLXBhdGg6dXJsKCNjbGlwcGF0aCk7fS5jbHMtNXtmaWxsOiM5MWM0N2M7fTwvc3R5bGU+PGNsaXBQYXRoIGlkPSJjbGlwcGF0aCI+PHBvbHlnb24gY2xhc3M9ImNscy0yIiBwb2ludHM9IjQ3Ljg0IDEzMy4xOCAwIDEzMy4xOCA0Ny44NCAwIDQ3Ljg0IDEzMy4xOCIvPjwvY2xpcFBhdGg+PC9kZWZzPjxnIGlkPSJibGlrc2VtX2dyb2VuIj48Zz48Zz48cG9seWdvbiBjbGFzcz0iY2xzLTIiIHBvaW50cz0iNDcuODQgMTMzLjE4IDAgMTMzLjE4IDQ3Ljg0IDAgNDcuODQgMTMzLjE4Ii8+PGcgY2xhc3M9ImNscy00Ij48Zz48cmVjdCBjbGFzcz0iY2xzLTIiIHdpZHRoPSI0LjA4IiBoZWlnaHQ9IjEzMy4wMSIvPjxyZWN0IGNsYXNzPSJjbHMtMiIgeD0iNi41OCIgd2lkdGg9IjMuODUiIGhlaWdodD0iMTMzLjAxIi8+PHJlY3QgY2xhc3M9ImNscy0yIiB4PSIxMi45MiIgd2lkdGg9IjMuODUiIGhlaWdodD0iMTMzLjAxIi8+PHJlY3QgY2xhc3M9ImNscy0yIiB4PSIxOS4wNCIgd2lkdGg9IjQuMDgiIGhlaWdodD0iMTMzLjE4Ii8+PHJlY3QgY2xhc3M9ImNscy0yIiB4PSIyNS4xNyIgd2lkdGg9IjQuMDgiIGhlaWdodD0iMTMzLjE4Ii8+PHJlY3QgY2xhc3M9ImNscy0yIiB4PSIzMS4yOSIgd2lkdGg9IjQuMDgiIGhlaWdodD0iMTMzLjE4Ii8+PHJlY3QgY2xhc3M9ImNscy0yIiB4PSIzNy42NCIgd2lkdGg9IjQuMDgiIGhlaWdodD0iMTMzLjE4Ii8+PHJlY3QgY2xhc3M9ImNscy01IiB4PSItNS42NiIgd2lkdGg9IjUzLjUiIGhlaWdodD0iMTMzLjE4Ii8+PC9nPjwvZz48L2c+PHBvbHlnb24gY2xhc3M9ImNscy0xIiBwb2ludHM9IjQ3Ljg0IDEwMC40MiA5NS42OCAxMDAuNDIgNDcuODQgMjMzLjYgNDcuODQgMTAwLjQyIi8+PHBvbHlnb24gY2xhc3M9ImNscy0zIiBwb2ludHM9IjAgMTMzLjE4IDQ3Ljg0IDEwMC40MiA0Ny44NCAxMzMuMTggMCAxMzMuMTgiLz48L2c+PC9nPjwvc3ZnPg=="/>
+	</defs>
+	<style>
+		tspan { white-space:pre } 
+		.t0 { font-size: 900px;fill: #bce495;font-weight: 400;font-family: "DejaVuSans", "DejaVu Sans" } 
+		.t1 { font-size: 900px;fill: #91c47c;font-weight: 400;font-family: "DejaVuSans", "DejaVu Sans" } 
+	</style>
+	<text id="[" style="transform: matrix(1,0,0,1,48,822)" >
+		<tspan x="0" y="0" class="t0">[
+</tspan>
+	</text>
+	<text id="]" style="transform: matrix(1,0,0,1,681,822)" >
+		<tspan x="0" y="0" class="t1">]</tspan><tspan  y="0" class="t1">
+</tspan>
+	</text>
+	<use id="Icon groen" href="#img1" transform="matrix(.447,0,0,.447,368,122)"/>
+</svg>

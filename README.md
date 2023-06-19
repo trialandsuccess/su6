@@ -1,15 +1,32 @@
-# su6-checker
+<div align="center">
+    <img 
+        align="center" 
+        src="https://raw.githubusercontent.com/robinvandernoord/su6-checker/development/_static/su6.svg" 
+        alt="Classy su6"
+        width="400px"
+        />
+    <h1 align="center">su6</h1>
+</div>
 
-[![PyPI - Version](https://img.shields.io/pypi/v/su6.svg)](https://pypi.org/project/su6)
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/su6.svg)](https://pypi.org/project/su6)  
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)  
-[![su6 checks](https://github.com/robinvandernoord/su6-checker/actions/workflows/su6.yml/badge.svg?branch=development)](https://github.com/robinvandernoord/su6-checker/actions)
-![coverage.svg](coverage.svg)
+<div align="center">
+    6 is pronounced as '/zɛs/' in Dutch, so 'su6' is basically 'success'. <br />
+    This package will hopefully help achieve that!
+</div>
+
+<br>
+
+<div align="center">
+    <a href="https://pypi.org/project/su6"><img alt="PyPI - Version" src="https://img.shields.io/pypi/v/su6.svg"/></a>
+    <a href="https://pypi.org/project/su6"><img alt="PyPI - Python Version" src="https://img.shields.io/pypi/pyversions/su6.svg"/></a>
+    <br/>
+    <a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"/></a>
+    <a href="https://opensource.org/licenses/MIT"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg"/></a>
+    <br/>
+    <a href="https://github.com/robinvandernoord/su6-checker/actions"><img alt="su6 checks" src="https://github.com/robinvandernoord/su6-checker/actions/workflows/su6.yml/badge.svg?branch=development"/></a>
+    <a href="https://github.com/robinvandernoord/su6-checker/actions"><img alt="Coverage" src="coverage.svg"/></a>
+</div>
 
 -----
-su6 (6 is pronounced as '/zɛs/' in Dutch, so 'su6' is basically 'success')  
-This package will hopefully help achieve that!
 
 **Table of Contents**
 
@@ -178,7 +195,9 @@ jobs:
 ```
 
 ## Plugins
-This tool also supports plugins to add extra checkers or other functionality. See [docs/plugins.md](https://github.com/robinvandernoord/su6-checker/blob/master/docs/plugins.md)
+
+This tool also supports plugins to add extra checkers or other functionality.
+See [docs/plugins.md](https://github.com/robinvandernoord/su6-checker/blob/master/docs/plugins.md)
 
 ## License
 
