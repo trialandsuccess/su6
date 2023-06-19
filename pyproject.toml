@@ -87,9 +87,9 @@ dev = [
 su6 = "su6.cli:app"
 
 [project.urls]
-Documentation = "https://github.com/robinvandernoord/su6-checker#readme"
-Issues = "https://github.com/robinvandernoord/su6-checker/issues"
-Source = "https://github.com/robinvandernoord/su6-checker"
+Documentation = "https://github.com/trialandsuccess/su6#readme"
+Issues = "https://github.com/trialandsuccess/su6/issues"
+Source = "https://github.com/trialandsuccess/su6"
 
 [tool.hatch.version]
 path = "src/su6/__about__.py"

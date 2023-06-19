@@ -1,7 +1,7 @@
 <div align="center">
     <img 
         align="center" 
-        src="https://raw.githubusercontent.com/robinvandernoord/su6-checker/master/_static/su6.svg" 
+        src="https://raw.githubusercontent.com/trialandsuccess/su6/master/_static/su6.svg" 
         alt="su6 checker"
         width="400px"
         />
@@ -22,8 +22,8 @@
     <a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"/></a>
     <a href="https://opensource.org/licenses/MIT"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg"/></a>
     <br/>
-    <a href="https://github.com/robinvandernoord/su6-checker/actions"><img alt="su6 checks" src="https://github.com/robinvandernoord/su6-checker/actions/workflows/su6.yml/badge.svg?branch=development"/></a>
-    <a href="https://github.com/robinvandernoord/su6-checker/actions"><img alt="Coverage" src="coverage.svg"/></a>
+    <a href="https://github.com/trialandsuccess/su6/actions"><img alt="su6 checks" src="https://github.com/trialandsuccess/su6/actions/workflows/su6.yml/badge.svg?branch=development"/></a>
+    <a href="https://github.com/trialandsuccess/su6/actions"><img alt="Coverage" src="coverage.svg"/></a>
 </div>
 
 -----
@@ -197,7 +197,7 @@ jobs:
 ## Plugins
 
 This tool also supports plugins to add extra checkers or other functionality.
-See [docs/plugins.md](https://github.com/robinvandernoord/su6-checker/blob/master/docs/plugins.md)
+See [docs/plugins.md](https://github.com/trialandsuccess/su6/blob/master/docs/plugins.md)
 
 ## License
 
@@ -205,4 +205,4 @@ See [docs/plugins.md](https://github.com/robinvandernoord/su6-checker/blob/maste
 
 ## Changelog
 
-See `CHANGELOG.md` [on GitHub](https://github.com/robinvandernoord/su6-checker/blob/master/CHANGELOG.md)
+See `CHANGELOG.md` [on GitHub](https://github.com/trialandsuccess/su6/blob/master/CHANGELOG.md)
