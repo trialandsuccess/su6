@@ -2,6 +2,13 @@
 
 <!--next-version-placeholder-->
 
+## v1.4.2 (2023-06-19)
+
+### Documentation
+
+* **readme:** Fix icon to master branch ([`d2e3a7c`](https://github.com/robinvandernoord/su6-checker/commit/d2e3a7c7dfa87236ad42e00074b46f5e4a30378f))
+* **readme:** Add icon ([`640c383`](https://github.com/robinvandernoord/su6-checker/commit/640c38318e579222a1ce641bf46c8c541a421bad))
+
 ## v1.4.1 (2023-06-19)
 
 ### Fix
