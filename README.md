@@ -1,8 +1,8 @@
 <div align="center">
     <img 
         align="center" 
-        src="https://raw.githubusercontent.com/robinvandernoord/su6-checker/development/_static/su6.svg" 
-        alt="Classy su6"
+        src="https://raw.githubusercontent.com/robinvandernoord/su6-checker/master/_static/su6.svg" 
+        alt="su6 checker"
         width="400px"
         />
     <h1 align="center">su6</h1>
