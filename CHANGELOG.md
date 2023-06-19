@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.4.3 (2023-06-19)
+
+### Documentation
+
+* Moved to trialandsuccess/su6 ([`d34de14`](https://github.com/robinvandernoord/su6-checker/commit/d34de14100ee2b52f986488179fc37e5f40ec839))
+
 ## v1.4.2 (2023-06-19)
 
 ### Documentation
