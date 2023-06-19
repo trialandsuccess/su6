@@ -25,7 +25,7 @@ dependencies = [
     "typer[all]",
     "plumbum",
     "black", # for 'find_pyproject_toml'
-    "configuraptor >= 1.4", # for config
+    "configuraptor >= 1.6", # for config
 ]
 
 [template.plugins.default]

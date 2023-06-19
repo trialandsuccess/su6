@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 import pytest
 from configuraptor import Singleton
+from configuraptor.errors import ConfigErrorExtraKey
 
 from src.su6 import state
 from src.su6.cli import app
@@ -83,7 +84,7 @@ def test_singleton():
     inst2 = MySingletonState()
     assert inst1 is inst2
 
-    with pytest.raises(KeyError):
+    with pytest.raises(ConfigErrorExtraKey):
         inst1.update(newkey="illegal")
 
     inst2.update(newkey="legal", strict=False)

@@ -281,23 +281,6 @@ class AbstractConfig(configuraptor.TypedConfig, configuraptor.Singleton):
 
     _strict = True
 
-    def update(self, strict: bool = True, allow_none: bool = False, **kw: typing.Any) -> None:
-        """
-        Set the config values.
-
-        Args:
-            strict: by default, setting a new/unannotated property will raise an error. Set strict to False to allow it.
-            allow_none: by default, None values are filtered away. Set to True to allow them.
-        """
-        for key, value in kw.items():
-            if value is None and not allow_none:
-                continue
-
-            if strict and key not in self.__annotations__:
-                raise KeyError(f"{self.__class__.__name__} does not have a property {key} and strict mode is enabled.")
-
-            setattr(self, key, value)
-
 
 @dataclass
 class Config(AbstractConfig):
