@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.4.1 (2023-06-19)
+
+### Fix
+
+* **config:** Use .update functionality from `configuraptor`. ([`aa09931`](https://github.com/robinvandernoord/su6-checker/commit/aa0993167e42d878689723a9d337bdc244082914))
+
 ## v1.4.0 (2023-06-15)
 
 ### Feature
