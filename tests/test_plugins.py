@@ -2,12 +2,12 @@ import json
 from dataclasses import dataclass
 
 import typer
-from su6.core import with_exit_code
 from typer.testing import CliRunner
 
 from src.su6 import state
 from src.su6.cli import app
 from src.su6.plugins import PluginLoader, register
+from su6.core import with_exit_code
 
 runner = CliRunner(mix_stderr=False)
 
@@ -84,6 +84,7 @@ class FakeModule3:
         """
         print("this lives in a namespace")
         return True
+
 
 @dataclass
 class FakeEntryPoint3:

@@ -70,7 +70,7 @@ def test_plugin_config():
     inst1.attach_extra("inst2", inst2)
     assert inst1._get("inst2") is inst2
 
-    assert type(inst3.empty) != inst3.__annotations__['empty']
+    assert type(inst3.empty) != inst3.__annotations__["empty"]
 
 
 def test_singleton():
@@ -87,11 +87,11 @@ def test_singleton():
     with pytest.raises(ConfigErrorExtraKey):
         inst1.update(newkey="illegal")
 
-    inst2.update(newkey="legal", strict=False)
-    inst2.update(newkey=None, strict=False)
+    inst2.update(newkey="legal", _strict=False)
+    inst2.update(newkey=None, _strict=False)
 
     assert inst1.newkey == "legal"  # and NOT None
-    inst2.update(newkey=None, strict=False, allow_none=True)
+    inst2.update(newkey=None, _strict=False, _allow_none=True)
     assert inst1.newkey is None
 
     assert inst1.__class__ in Singleton._instances

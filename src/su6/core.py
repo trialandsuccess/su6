@@ -8,19 +8,22 @@ import json
 import operator
 import os
 import sys
-import tomllib
 import types
 import typing
 from dataclasses import dataclass, field
+from typing import Any, Callable, Optional, TypeAlias, Union
 
 import black.files
 import configuraptor
 import plumbum.commands.processes as pb
+import tomli
 import typer
 from configuraptor import convert_config
 from plumbum import local
 from plumbum.machines import LocalCommand
 from rich import print
+
+# from typing_extensions import Unpack
 
 GREEN_CIRCLE = "🟢"
 YELLOW_CIRCLE = "🟡"
@@ -36,15 +39,15 @@ PlumbumError = (pb.ProcessExecutionError, pb.ProcessTimedOut, pb.ProcessLineTime
 T_Command_Return = bool | int | None
 # ... here indicates any number of args/kwargs:
 # t command is any @app.command() method, which can have anything as input and bool or int as output
-T_Command: typing.TypeAlias = typing.Callable[..., T_Command_Return]
+T_Command: TypeAlias = Callable[..., T_Command_Return]
 # t inner wrapper calls t_command and handles its output. This wrapper gets the same (kw)args as above so ... again
-T_Inner_Wrapper: typing.TypeAlias = typing.Callable[..., int | None]
+T_Inner_Wrapper: TypeAlias = Callable[..., int | None]
 # outer wrapper gets the t_command method as input and outputs the inner wrapper,
 # so that gets called() with args and kwargs when that method is used from the cli
-T_Outer_Wrapper: typing.TypeAlias = typing.Callable[[T_Command], T_Inner_Wrapper]
+T_Outer_Wrapper: TypeAlias = Callable[[T_Command], T_Inner_Wrapper]
 
 
-def print_json(data: typing.Any) -> None:
+def print_json(data: Any) -> None:
     """
     Take a dict of {command: output} or the State and print it.
     """
@@ -83,7 +86,7 @@ def with_exit_code() -> T_Outer_Wrapper:
 
     def outer_wrapper(func: T_Command) -> T_Inner_Wrapper:
         @functools.wraps(func)
-        def inner_wrapper(*args: typing.Any, **kwargs: typing.Any) -> int:
+        def inner_wrapper(*args: Any, **kwargs: Any) -> int:
             _suppress = kwargs.pop("_suppress", False)
             _ignore_exit_codes = kwargs.pop("_ignore", set())
 
@@ -168,7 +171,7 @@ class Verbosity(enum.Enum):
     def _compare(
         self: "Verbosity",
         other: "Verbosity_Comparable",
-        _operator: typing.Callable[["Verbosity_Comparable", "Verbosity_Comparable"], bool],
+        _operator: Callable[["Verbosity_Comparable", "Verbosity_Comparable"], bool],
     ) -> bool:
         """
         Abstraction using 'operator' to have shared functionality between <, <=, ==, >=, >.
@@ -212,7 +215,7 @@ class Verbosity(enum.Enum):
         """
         return self._compare(self, other, operator.le)
 
-    def __eq__(self, other: typing.Union["Verbosity", str, int, object]) -> bool:
+    def __eq__(self, other: Union["Verbosity", str, int, object]) -> bool:
         """
         Magic method for self == other.
 
@@ -298,14 +301,14 @@ class Config(AbstractConfig):
     json_indent: int = 4
 
     ### pytest ###
-    coverage: typing.Optional[float] = None  # only relevant for pytest
+    coverage: Optional[float] = None  # only relevant for pytest
     badge: bool | str = False  # only relevant for pytest
 
     def __post_init__(self) -> None:
         """
         Update the value of badge to the default path.
         """
-        self.__raw: dict[str, typing.Any] = {}
+        self.__raw: dict[str, Any] = {}
         if self.badge is True:  # pragma: no cover
             # no cover because pytest can't test pytest :C
             self.badge = DEFAULT_BADGE
@@ -323,7 +326,7 @@ class Config(AbstractConfig):
         # if no include or excludes passed, just run all!
         return options
 
-    def set_raw(self, raw: dict[str, typing.Any]) -> None:
+    def set_raw(self, raw: dict[str, Any]) -> None:
         """
         Set the raw config dict (from pyproject.toml).
 
@@ -331,26 +334,26 @@ class Config(AbstractConfig):
         """
         self.__raw.update(raw)
 
-    def get_raw(self) -> dict[str, typing.Any]:
+    def get_raw(self) -> dict[str, Any]:
         """
         Get the raw config dict (to load Plugin config).
         """
         return self.__raw or {}
 
 
-MaybeConfig: typing.TypeAlias = typing.Optional[Config]
+MaybeConfig: TypeAlias = Optional[Config]
 
-T_typelike: typing.TypeAlias = type | types.UnionType | types.UnionType
+T_typelike: TypeAlias = type | types.UnionType | types.UnionType
 
 
-def find_pyproject_toml() -> typing.Optional[str]:
+def find_pyproject_toml() -> Optional[str]:
     """
     Find the project's config toml, looks up until it finds the project root (black's logic).
     """
     return black.files.find_pyproject_toml((os.getcwd(),))
 
 
-def _get_su6_config(overwrites: dict[str, typing.Any], toml_path: str = None) -> MaybeConfig:
+def _get_su6_config(overwrites: dict[str, Any], toml_path: str = None) -> MaybeConfig:
     """
     Parse the users pyproject.toml (found using black's logic) and extract the tool.su6 part.
 
@@ -369,7 +372,7 @@ def _get_su6_config(overwrites: dict[str, typing.Any], toml_path: str = None) ->
         return None
 
     with open(toml_path, "rb") as f:
-        full_config = tomllib.load(f)
+        full_config = tomli.load(f)
 
     tool_config = full_config["tool"]
 
@@ -383,14 +386,14 @@ def _get_su6_config(overwrites: dict[str, typing.Any], toml_path: str = None) ->
     return config
 
 
-def get_su6_config(verbosity: Verbosity = DEFAULT_VERBOSITY, toml_path: str = None, **overwrites: typing.Any) -> Config:
+def get_su6_config(verbosity: Verbosity = DEFAULT_VERBOSITY, toml_path: str = None, **overwrites: Any) -> Config:
     """
     Load the relevant pyproject.toml config settings.
 
     Args:
         verbosity: if something goes wrong, level 3+ will show a warning and 4+ will raise the exception.
         toml_path: --config can be used to use a different file than ./pyproject.toml
-        overwrites (dict[str, typing.Any): cli arguments can overwrite the config toml.
+        overwrites (dict[str, Any): cli arguments can overwrite the config toml.
                 If a value is None, the key is not overwritten.
     """
     # strip out any 'overwrites' with None as value
@@ -436,7 +439,7 @@ def log_command(command: LocalCommand, args: typing.Iterable[str]) -> None:
     """
     Print a Plumbum command in blue, prefixed with > to indicate it's a shell command.
     """
-    info(f"> {command[*args]}")
+    info(f"> {command[args]}")
 
 
 def log_cmd_output(stdout: str = "", stderr: str = "") -> None:
@@ -448,6 +451,14 @@ def log_cmd_output(stdout: str = "", stderr: str = "") -> None:
     warn(stdout)
     # probably more important error stuff, so stderr goes last:
     danger(stderr)
+
+
+# postponed: use with Unpack later.
+# class _Overwrites(typing.TypedDict, total=False):
+#     config_file: Optional[str]
+#     verbosity: Verbosity
+#     output_format: Format
+#     # + kwargs
 
 
 @dataclass()
@@ -464,7 +475,7 @@ class ApplicationState:
 
     verbosity: Verbosity = DEFAULT_VERBOSITY
     output_format: Format = DEFAULT_FORMAT
-    config_file: typing.Optional[str] = None  # will be filled with black's search logic
+    config_file: Optional[str] = None  # will be filled with black's search logic
     config: MaybeConfig = None
 
     def __post_init__(self) -> None:
@@ -473,7 +484,7 @@ class ApplicationState:
         """
         self._plugins: dict[str, AbstractConfig] = {}
 
-    def load_config(self, **overwrites: typing.Any) -> Config:
+    def load_config(self, **overwrites: Any) -> Config:
         """
         Load the su6 config from pyproject.toml (or other config_file) with optional overwriting settings.
 
@@ -513,7 +524,7 @@ class ApplicationState:
         """
         return self.config or self.load_config()
 
-    def update_config(self, **values: typing.Any) -> Config:
+    def update_config(self, **values: Any) -> Config:
         """
         Overwrite default/toml settings with cli values.
 
