@@ -7,7 +7,7 @@ name = "su6"
 dynamic = ["version"]
 description = 'Python cli tool to use tools for some common code quality checks (opinionated)'
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.10"
 license = "MIT"
 keywords = []
 authors = [
@@ -25,7 +25,7 @@ dependencies = [
     "typer[all]",
     "plumbum",
     "black", # for 'find_pyproject_toml'
-    "configuraptor >= 1.6", # for config
+    "configuraptor >= 1.7", # for config, should include 'tomlkit'
 ]
 
 [template.plugins.default]
@@ -45,6 +45,7 @@ all = [
     "pytest",
     "pytest-cov",
     "coverage-badge",
+    "contextlib-chdir; python_version < '3.11'",
 ]
 
 black = [
@@ -75,6 +76,7 @@ pytest = [
     "pytest",
     "pytest-cov",
     "coverage-badge",
+    "contextlib-chdir; python_version < '3.11'",
 ]
 
 dev = [

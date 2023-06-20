@@ -12,6 +12,11 @@ from src.su6.core import (
 )
 from ._shared import EXAMPLES_PATH
 
+try:
+    chdir = contextlib.chdir
+except AttributeError:
+    from contextlib_chdir import chdir
+
 
 def test_verbosity_compare():
     verbosity_1 = Verbosity.quiet
@@ -56,7 +61,7 @@ def test_get_su6_config():
     assert defaults.directory == empty.directory
     assert none.pyproject is not None
 
-    with contextlib.chdir("/tmp"):
+    with chdir("/tmp"):
         # no pyproject.toml in sight -> internal su6 config should return None and external should return default
         assert _get_su6_config(overwrites={}) is None
         assert get_su6_config() == defaults

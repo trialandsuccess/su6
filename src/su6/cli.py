@@ -36,6 +36,8 @@ from .core import (
 )
 from .plugins import include_plugins
 
+from typing_extensions import Never
+
 app = typer.Typer()
 
 include_plugins(app)
@@ -396,7 +398,7 @@ def self_update(version: str = None) -> int:
         return 1
 
 
-def version_callback() -> typing.Never:
+def version_callback() -> Never:
     """
     --version requested!
     """
@@ -408,7 +410,7 @@ def version_callback() -> typing.Never:
     raise typer.Exit(0)
 
 
-def show_config_callback() -> typing.Never:
+def show_config_callback() -> Never:
     """
     --show-config requested!
     """
