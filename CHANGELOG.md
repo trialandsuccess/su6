@@ -2,6 +2,13 @@
 
 <!--next-version-placeholder-->
 
+## v1.5.1 (2023-06-20)
+
+### Documentation
+
+* **logo:** Use png instead of svg because that was being funky ([`89d71a5`](https://github.com/robinvandernoord/su6-checker/commit/89d71a59a74f046f5daa5da2180505676b273318))
+* **changelog:** Manually added change for 1.5.0 ([`3713a6b`](https://github.com/robinvandernoord/su6-checker/commit/3713a6bc61ef2eaa930721f7a7e6caa9cbbefe22))
+
 ## v1.5.0 (2023-06-20)
 
 ### Feature
