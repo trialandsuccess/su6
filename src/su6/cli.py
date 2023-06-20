@@ -13,6 +13,7 @@ from configuraptor import Singleton
 from plumbum import local
 from plumbum.machines import LocalCommand
 from rich import print
+from typing_extensions import Never
 
 from .__about__ import __version__
 from .core import (
@@ -35,8 +36,6 @@ from .core import (
     with_exit_code,
 )
 from .plugins import include_plugins
-
-from typing_extensions import Never
 
 app = typer.Typer()
 

@@ -1,4 +1,5 @@
 import contextlib
+import os
 
 import pytest
 from configuraptor.errors import ConfigErrorInvalidType
@@ -10,6 +11,7 @@ from src.su6.core import (
     _get_su6_config,
     get_su6_config,
 )
+
 from ._shared import EXAMPLES_PATH
 
 try:

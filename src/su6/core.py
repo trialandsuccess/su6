@@ -8,7 +8,6 @@ import json
 import operator
 import os
 import sys
-import tomlkit
 import types
 import typing
 from dataclasses import dataclass, field
@@ -17,12 +16,14 @@ from typing import Any, Callable, Optional, TypeAlias, Union
 import black.files
 import configuraptor
 import plumbum.commands.processes as pb
+import tomli
 import typer
 from configuraptor import convert_config
 from plumbum import local
 from plumbum.machines import LocalCommand
 from rich import print
-from typing_extensions import Unpack
+
+# from typing_extensions import Unpack
 
 GREEN_CIRCLE = "🟢"
 YELLOW_CIRCLE = "🟡"
@@ -371,7 +372,7 @@ def _get_su6_config(overwrites: dict[str, Any], toml_path: str = None) -> MaybeC
         return None
 
     with open(toml_path, "rb") as f:
-        full_config = tomlkit.load(f)
+        full_config = tomli.load(f)
 
     tool_config = full_config["tool"]
 
@@ -452,11 +453,12 @@ def log_cmd_output(stdout: str = "", stderr: str = "") -> None:
     danger(stderr)
 
 
-class _Overwrites(typing.TypedDict, total=False):
-    config_file: Optional[str]
-    verbosity: Verbosity
-    output_format: Format
-    # + kwargs
+# postponed: use with Unpack later.
+# class _Overwrites(typing.TypedDict, total=False):
+#     config_file: Optional[str]
+#     verbosity: Verbosity
+#     output_format: Format
+#     # + kwargs
 
 
 @dataclass()
@@ -482,7 +484,7 @@ class ApplicationState:
         """
         self._plugins: dict[str, AbstractConfig] = {}
 
-    def load_config(self, **overwrites: Unpack[_Overwrites]) -> Config:
+    def load_config(self, **overwrites: Any) -> Config:
         """
         Load the su6 config from pyproject.toml (or other config_file) with optional overwriting settings.
 
