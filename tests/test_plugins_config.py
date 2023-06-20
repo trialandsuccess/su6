@@ -70,7 +70,7 @@ def test_plugin_config():
     inst1.attach_extra("inst2", inst2)
     assert inst1._get("inst2") is inst2
 
-    assert type(inst3.empty) != inst3.__annotations__['empty']
+    assert type(inst3.empty) != inst3.__annotations__["empty"]
 
 
 def test_singleton():

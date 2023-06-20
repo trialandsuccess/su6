@@ -13,6 +13,7 @@ from configuraptor import Singleton
 from plumbum import local
 from plumbum.machines import LocalCommand
 from rich import print
+from typing_extensions import Never
 
 from .__about__ import __version__
 from .core import (
@@ -396,7 +397,7 @@ def self_update(version: str = None) -> int:
         return 1
 
 
-def version_callback() -> typing.Never:
+def version_callback() -> Never:
     """
     --version requested!
     """
@@ -408,7 +409,7 @@ def version_callback() -> typing.Never:
     raise typer.Exit(0)
 
 
-def show_config_callback() -> typing.Never:
+def show_config_callback() -> Never:
     """
     --show-config requested!
     """
