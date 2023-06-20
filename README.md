@@ -1,7 +1,7 @@
 <div align="center">
     <img 
         align="center" 
-        src="https://raw.githubusercontent.com/trialandsuccess/su6/master/_static/su6.svg" 
+        src="https://raw.githubusercontent.com/trialandsuccess/su6/master/_static/su6.png" 
         alt="su6 checker"
         width="400px"
         />
