@@ -383,3 +383,23 @@ def test_show_config_callback():
 
     data = json.loads(result.stdout)
     assert "Verbosity.verbose" in data["verbosity"]
+
+
+def test_list():
+    args = ["--config", str(EXAMPLES_PATH / "except_pytest.toml"), "list"]
+    result = runner.invoke(app, args)
+
+    print(result.stdout)
+
+    assert result.exit_code == 0
+
+    assert GREEN_CIRCLE in result.stdout
+    assert RED_CIRCLE in result.stdout
+
+    args = ["--format", "json"] + args
+    result = runner.invoke(app, args)
+
+    results = json.loads(result.stdout)
+
+    assert results["ruff"] is True
+    assert results["pytest"] is False

@@ -23,7 +23,8 @@ from plumbum import local
 from plumbum.machines import LocalCommand
 from rich import print
 
-# from typing_extensions import Unpack
+if typing.TYPE_CHECKING:  # pragma: no cover
+    from .plugins import AnyRegistration
 
 GREEN_CIRCLE = "🟢"
 YELLOW_CIRCLE = "🟡"
@@ -326,6 +327,18 @@ class Config(AbstractConfig):
         # if no include or excludes passed, just run all!
         return options
 
+    def determine_plugins_to_run(self, attr: str) -> list[T_Command]:
+        """
+        Similar to `determine_which_to_run` but for plugin commands, and without 'include' ('exclude' only).
+
+        Attr is the key in Registration to filter plugins on, e.g. 'add_to_all'
+        """
+        return [
+            _.wrapped
+            for name, _ in state._registered_plugins.items()
+            if getattr(_, attr) and name not in (self.exclude or ())
+        ]
+
     def set_raw(self, raw: dict[str, Any]) -> None:
         """
         Set the raw config dict (from pyproject.toml).
@@ -482,7 +495,17 @@ class ApplicationState:
         """
         Store registered plugin config.
         """
-        self._plugins: dict[str, AbstractConfig] = {}
+        self._plugin_configs: dict[str, AbstractConfig] = {}
+        self._registered_plugins: dict[str, "AnyRegistration"] = {}
+
+    def register_plugin(self, plugin_name: str, registration: "AnyRegistration") -> None:
+        """
+        Connect a Registration to the State.
+
+        Used by `all` and `fix` to include plugin commands with add_to_all or add_to_fix respectively.
+        """
+        plugin_name = plugin_name.replace("_", "-")
+        self._registered_plugins[plugin_name] = registration
 
     def load_config(self, **overwrites: Any) -> Config:
         """
@@ -507,7 +530,7 @@ class ApplicationState:
 
         Called from plugins.py when an @registered PluginConfig is found.
         """
-        self._plugins[name] = config_cls
+        self._plugin_configs[name] = config_cls
 
     def _setup_plugin_config_defaults(self) -> None:
         """
@@ -515,7 +538,7 @@ class ApplicationState:
         """
         config = self.get_config()
         raw = config.get_raw()
-        for name, config_instance in self._plugins.items():
+        for name, config_instance in self._plugin_configs.items():
             configuraptor.load_into_instance(config_instance, raw, key=name, strict=config_instance._strict)
 
     def get_config(self) -> Config:

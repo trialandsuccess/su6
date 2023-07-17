@@ -122,6 +122,11 @@ T_Wrappable = typing.TypeVar("T_Wrappable", T_PluginConfig, T_Command)
 class Registration(typing.Generic[T_Wrappable]):
     wrapped: T_Wrappable
 
+    # Command:
+    add_to_all: bool
+    add_to_fix: bool
+
+    # Config:
     with_state: bool
     strict: bool
     config_key: typing.Optional[str]
@@ -137,21 +142,39 @@ class Registration(typing.Generic[T_Wrappable]):
             return "command"
 
 
+AnyRegistration = Registration[T_PluginConfig] | Registration[T_Command]
+
 # WeakValueDictionary() does not work since it removes the references too soon :(
-registrations: dict[int, Registration[T_PluginConfig] | Registration[T_Command]] = {}
+registrations: dict[int, AnyRegistration] = {}
 
 
 def _register(
     wrapped: T_Wrappable,
+    add_to_all: bool,
+    add_to_fix: bool,
     with_state: bool,
     strict: bool,
     config_key: typing.Optional[str],
     *a: typing.Any,
     **kw: typing.Any,
 ) -> T_Wrappable:
-    registrations[id(wrapped)] = Registration(
-        wrapped, with_state=with_state, strict=strict, config_key=config_key, args=a, kwargs=kw
+    registration = Registration(
+        wrapped,
+        # Command:
+        add_to_all=add_to_all,
+        add_to_fix=add_to_fix,
+        # Config:
+        with_state=with_state,
+        strict=strict,
+        config_key=config_key,
+        # passed to Typer
+        args=a,
+        kwargs=kw,
     )
+
+    registrations[id(wrapped)] = registration
+    state.register_plugin(wrapped.__name__, registration)
+
     return wrapped
 
 
@@ -183,6 +206,9 @@ def register(
 
 def register(
     wrappable: T_Wrappable = None,
+    # only used when @registering a Command:
+    add_to_all: bool = False,
+    add_to_fix: bool = False,
     # only used when @registering a PluginConfig:
     with_state: bool = False,
     strict: bool = True,
@@ -205,7 +231,7 @@ def register(
     """
 
     def inner(func: T_Wrappable) -> T_Wrappable:
-        return _register(func, with_state, strict, config_key, *a_outer, **kw_outer)
+        return _register(func, add_to_all, add_to_fix, with_state, strict, config_key, *a_outer, **kw_outer)
 
     if wrappable:
         return inner(wrappable)

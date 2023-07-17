@@ -144,6 +144,34 @@ def pydocstyle(directory: T_directory = None) -> int:
     return run_tool("pydocstyle", config.directory)
 
 
+@app.command(name="list")
+@with_exit_code()
+def list_tools() -> None:
+    """
+    List tools that would run with 'su6 all'.
+    """
+    config = state.update_config()
+    all_tools = [ruff, black, mypy, bandit, isort, pydocstyle, pytest]
+    all_plugin_tools = [_.wrapped for _ in state._registered_plugins.values() if _.what == "command"]
+    tools_to_run = config.determine_which_to_run(all_tools) + config.determine_plugins_to_run("add_to_all")
+
+    output = {}
+    for tool in all_tools + all_plugin_tools:
+        tool_name = tool.__name__.replace("_", "-")
+
+        if state.output_format == "text":
+            if tool in tools_to_run:
+                print(GREEN_CIRCLE, tool_name)
+            else:
+                print(RED_CIRCLE, tool_name)
+
+        elif state.output_format == "json":
+            output[tool_name] = tool in tools_to_run
+
+    if state.output_format == "json":
+        print_json(output)
+
+
 @app.command(name="all")
 @with_exit_code()
 def check_all(
@@ -180,7 +208,9 @@ def check_all(
     if ignore_uninstalled:
         ignored_exit_codes.add(EXIT_CODE_COMMAND_NOT_FOUND)
 
-    tools = config.determine_which_to_run([ruff, black, mypy, bandit, isort, pydocstyle, pytest])
+    tools = [ruff, black, mypy, bandit, isort, pydocstyle, pytest]
+
+    tools = config.determine_which_to_run(tools) + config.determine_plugins_to_run("add_to_all")
 
     exit_codes = []
     for tool in tools:
@@ -311,7 +341,9 @@ def do_fix(directory: T_directory = None, ignore_uninstalled: bool = False) -> b
     if ignore_uninstalled:
         ignored_exit_codes.add(EXIT_CODE_COMMAND_NOT_FOUND)
 
-    tools = config.determine_which_to_run([black, isort])
+    tools = [isort, black]
+
+    tools = config.determine_which_to_run(tools) + config.determine_plugins_to_run("add_to_fix")
 
     exit_codes = [tool(directory, fix=True, _suppress=True, _ignore=ignored_exit_codes) for tool in tools]
 
