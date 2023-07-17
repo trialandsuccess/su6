@@ -2,6 +2,17 @@
 
 <!--next-version-placeholder-->
 
+## v1.6.0 (2023-07-17)
+
+### Feature
+
+* Allow `add_to_all` and `add_to_fix` to plugin registration ([`f0c501b`](https://github.com/robinvandernoord/su6-checker/commit/f0c501b76c9e8baad37178f45ec83fd23f91d446))
+
+### Documentation
+
+* **plugins:** Added more info about `add_to_*` and the svelte-check plugin ([`3e0051c`](https://github.com/robinvandernoord/su6-checker/commit/3e0051c968f97883ef7dc7859bdf5b3138753c73))
+* **pypi:** Indicate 3.10 support ([`a547da0`](https://github.com/robinvandernoord/su6-checker/commit/a547da0783cfccfa058b780bcdbe8130e9cf3e62))
+
 ## v1.5.2 (2023-06-21)
 
 
