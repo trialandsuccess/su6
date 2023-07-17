@@ -6,18 +6,13 @@ This file exposes 'app' to the module.
 #
 # SPDX-License-Identifier: MIT
 
-from rich import print  # noqa: import is there for library reasons
+from rich import print
 
-from .cli import app  # noqa: import is there for library reasons
-from .core import (  # noqa: import is there for library reasons
-    GREEN_CIRCLE,
-    RED_CIRCLE,
-    print_json,
-    state,
-)
+from .cli import app
+from .core import GREEN_CIRCLE, RED_CIRCLE, print_json, state
 
 # for plugins:
-from .plugins import (  # noqa: import is there for library reasons
-    register as register_plugin,
-)
-from .plugins import run_tool  # noqa: import is there for library reasons
+from .plugins import register as register_plugin
+from .plugins import run_tool
+
+__all__ = ["app", "print", "GREEN_CIRCLE", "RED_CIRCLE", "print_json", "state", "register_plugin", "run_tool"]
