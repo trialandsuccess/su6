@@ -42,7 +42,10 @@ def second():
     print("This is a demo  command!")
 
 
-@register(name="third")  # keyword arguments will be forwarded to Typer's @app.command
+@register(
+    add_to_all=True, # will include this command when running `su6 all`.
+    name="third" # extra keyword arguments will be forwarded to Typer's @app.command
+)  
 def other():
     print("This is a demo  command!")
 
@@ -106,6 +109,7 @@ A plugin can also load plugin-specific config from the user-defined config file 
 This config works similar to the `state.config` of this module.
 Keys are typed, and will throw a type error if the type in the toml file does not match with the annotation.
 This behavior can be disabled by passing `strict=False` to the `@register` call.
+`add_to_all` and `add_to_fix` can be used to extend the functionality of `su6 all` and `su6 fix` respectively.
 
 Default config can be updated with for example command arguments with the `.update` method.
 If a value is `None`, the key will NOT be updated to preserve defaults. Other Falsey values will overwrite the defaults.

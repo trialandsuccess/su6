@@ -32,6 +32,7 @@
 
 - [Installation](#installation)
 - [Usage](#usage)
+- [Plugins](#plugins)
 - [License](#license)
 - [Plugins](#plugins)
 - [Changelog](#changelog)
@@ -197,7 +198,13 @@ jobs:
 ## Plugins
 
 This tool also supports plugins to add extra checkers or other functionality.
-See [docs/plugins.md](https://github.com/trialandsuccess/su6/blob/master/docs/plugins.md)
+See [docs/plugins.md](https://github.com/trialandsuccess/su6/blob/master/docs/plugins.md) for information on how to
+build a Plugin.
+
+### svelte-check
+
+[robinvandernoord/su6-plugin-svelte-check](https://github.com/robinvandernoord/su6-plugin-svelte-check) is a Plugin that
+adds `svelte-check` functionality.
 
 ## License
 
