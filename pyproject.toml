@@ -91,6 +91,10 @@ svelte-check = [
     "su6-plugin-svelte-check"
 ]
 
+prettier = [
+    "su6-plugin-prettier"
+]
+
 [project.scripts]
 su6 = "su6.cli:app"
 

@@ -204,7 +204,14 @@ build a Plugin.
 ### svelte-check
 
 [robinvandernoord/su6-plugin-svelte-check](https://github.com/robinvandernoord/su6-plugin-svelte-check) is a Plugin that
-adds `svelte-check` functionality.
+adds `svelte-check` functionality.  
+Can be installed using `pip install su6[svelte-check]`
+
+### prettier
+
+[robinvandernoord/su6-plugin-prettier](https://github.com/robinvandernoord/su6-plugin-prettier) is a Plugin that
+adds `prettier.io` functionality.  
+Can be installed using `pip install su6[prettier]`
 
 ## License
 
