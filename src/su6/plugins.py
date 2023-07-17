@@ -121,6 +121,11 @@ T_Wrappable = typing.TypeVar("T_Wrappable", T_PluginConfig, T_Command)
 @dataclass()
 class Registration(typing.Generic[T_Wrappable]):
     wrapped: T_Wrappable
+
+    with_state: bool
+    strict: bool
+    config_key: typing.Optional[str]
+
     args: tuple[typing.Any, ...]
     kwargs: dict[str, typing.Any]
 
@@ -136,8 +141,17 @@ class Registration(typing.Generic[T_Wrappable]):
 registrations: dict[int, Registration[T_PluginConfig] | Registration[T_Command]] = {}
 
 
-def _register(wrapped: T_Wrappable, *a: typing.Any, **kw: typing.Any) -> T_Wrappable:
-    registrations[id(wrapped)] = Registration(wrapped, a, kw)
+def _register(
+    wrapped: T_Wrappable,
+    with_state: bool,
+    strict: bool,
+    config_key: typing.Optional[str],
+    *a: typing.Any,
+    **kw: typing.Any,
+) -> T_Wrappable:
+    registrations[id(wrapped)] = Registration(
+        wrapped, with_state=with_state, strict=strict, config_key=config_key, args=a, kwargs=kw
+    )
     return wrapped
 
 
@@ -168,7 +182,13 @@ def register(
 
 
 def register(
-    wrappable: T_Wrappable = None, *a_outer: typing.Any, **kw_outer: typing.Any
+    wrappable: T_Wrappable = None,
+    # only used when @registering a PluginConfig:
+    with_state: bool = False,
+    strict: bool = True,
+    config_key: typing.Optional[str] = None,
+    *a_outer: typing.Any,
+    **kw_outer: typing.Any,
 ) -> T_Wrappable | typing.Callable[[T_Wrappable], T_Wrappable]:
     """
     Register a top-level Plugin command or a Plugin Config.
@@ -185,7 +205,7 @@ def register(
     """
 
     def inner(func: T_Wrappable) -> T_Wrappable:
-        return _register(func, *a_outer, **kw_outer)
+        return _register(func, with_state, strict, config_key, *a_outer, **kw_outer)
 
     if wrappable:
         return inner(wrappable)
@@ -301,15 +321,15 @@ class PluginLoader:
             [tool.su6.demo.extra]
             more = true
         """
-        key = registration.kwargs.pop("config_key", name)
+        key = registration.config_key or name
 
         cls = registration.wrapped
         inst = cls()
 
-        if registration.kwargs.pop("with_state", False):
+        if registration.with_state:
             inst.attach_state(state)
 
-        if registration.kwargs.pop("strict", True) is False:
+        if registration.strict is False:
             inst._strict = False
 
         state.attach_plugin_config(key, inst)
