@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.6.3 (2023-07-17)
+
+### Documentation
+
+* **plugins:** Added `prettier` extra ([`f1f0d34`](https://github.com/robinvandernoord/su6-checker/commit/f1f0d3402bc5b8eb5ffc6eceedce6ef83ba30141))
+
 ## v1.6.2 (2023-07-17)
 
 ### Feature
