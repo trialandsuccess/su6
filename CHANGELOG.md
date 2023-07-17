@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.6.2 (2023-07-17)
+
+### Feature
+
+* Add su6[svelte-check] as extra ([`558a2be`](https://github.com/robinvandernoord/su6-checker/commit/558a2bee214f5294e8193765d5a4566a85afdc6f))
+
 ## v1.6.1 (2023-07-17)
 
 ### Fix
