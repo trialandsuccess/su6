@@ -125,6 +125,8 @@ def run_tool(tool: str, *args: str) -> int:
         tool: the (bash) name of the tool to run.
         args: cli args to pass to the cli bash tool
     """
+    tool_name = tool.split("/")[-1]
+
     try:
         cmd = local[tool]
 
@@ -134,7 +136,7 @@ def run_tool(tool: str, *args: str) -> int:
         result = cmd(*args)
 
         if state.output_format == "text":
-            print(GREEN_CIRCLE, tool)
+            print(GREEN_CIRCLE, tool_name)
 
         if state.verbosity > 2:  # pragma: no cover
             log_cmd_output(result)
@@ -142,15 +144,15 @@ def run_tool(tool: str, *args: str) -> int:
         return EXIT_CODE_SUCCESS  # success
     except pb.CommandNotFound:  # pragma: no cover
         if state.verbosity > 2:
-            warn(f"Tool {tool} not installed!")
+            warn(f"Tool {tool_name} not installed!")
 
         if state.output_format == "text":
-            print(YELLOW_CIRCLE, tool)
+            print(YELLOW_CIRCLE, tool_name)
 
         return EXIT_CODE_COMMAND_NOT_FOUND  # command not found
     except pb.ProcessExecutionError as e:
         if state.output_format == "text":
-            print(RED_CIRCLE, tool)
+            print(RED_CIRCLE, tool_name)
 
         if state.verbosity > 1:
             log_cmd_output(e.stdout, e.stderr)
