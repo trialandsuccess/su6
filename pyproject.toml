@@ -86,6 +86,11 @@ dev = [
     "su6-plugin-demo",
 ]
 
+# plugins:
+svelte-check = [
+    "su6-plugin-svelte-check"
+]
+
 [project.scripts]
 su6 = "su6.cli:app"
 
