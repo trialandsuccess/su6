@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.6.1 (2023-07-17)
+
+### Fix
+
+* **tool:** Don't show full executable path in output, only tool name ([`2ec226f`](https://github.com/robinvandernoord/su6-checker/commit/2ec226f62349c048221a056d2b504e38048c5706))
+
 ## v1.6.0 (2023-07-17)
 
 ### Feature
