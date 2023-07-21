@@ -4,47 +4,55 @@
 
 ## v1.6.4 (2023-07-21)
 
+### Refactor
 
+* refactor: moved pyproject logic to configuraptor and bumped dependency version
 
 ## v1.6.3 (2023-07-17)
 
 ### Documentation
 
-* **plugins:** Added `prettier` extra ([`f1f0d34`](https://github.com/robinvandernoord/su6-checker/commit/f1f0d3402bc5b8eb5ffc6eceedce6ef83ba30141))
+* **plugins:** Added `prettier`
+  extra ([`f1f0d34`](https://github.com/robinvandernoord/su6-checker/commit/f1f0d3402bc5b8eb5ffc6eceedce6ef83ba30141))
 
 ## v1.6.2 (2023-07-17)
 
 ### Feature
 
-* Add su6[svelte-check] as extra ([`558a2be`](https://github.com/robinvandernoord/su6-checker/commit/558a2bee214f5294e8193765d5a4566a85afdc6f))
+* Add su6[svelte-check] as
+  extra ([`558a2be`](https://github.com/robinvandernoord/su6-checker/commit/558a2bee214f5294e8193765d5a4566a85afdc6f))
 
 ## v1.6.1 (2023-07-17)
 
 ### Fix
 
-* **tool:** Don't show full executable path in output, only tool name ([`2ec226f`](https://github.com/robinvandernoord/su6-checker/commit/2ec226f62349c048221a056d2b504e38048c5706))
+* **tool:** Don't show full executable path in output, only tool
+  name ([`2ec226f`](https://github.com/robinvandernoord/su6-checker/commit/2ec226f62349c048221a056d2b504e38048c5706))
 
 ## v1.6.0 (2023-07-17)
 
 ### Feature
 
-* Allow `add_to_all` and `add_to_fix` to plugin registration ([`f0c501b`](https://github.com/robinvandernoord/su6-checker/commit/f0c501b76c9e8baad37178f45ec83fd23f91d446))
+* Allow `add_to_all` and `add_to_fix` to plugin
+  registration ([`f0c501b`](https://github.com/robinvandernoord/su6-checker/commit/f0c501b76c9e8baad37178f45ec83fd23f91d446))
 
 ### Documentation
 
-* **plugins:** Added more info about `add_to_*` and the svelte-check plugin ([`3e0051c`](https://github.com/robinvandernoord/su6-checker/commit/3e0051c968f97883ef7dc7859bdf5b3138753c73))
-* **pypi:** Indicate 3.10 support ([`a547da0`](https://github.com/robinvandernoord/su6-checker/commit/a547da0783cfccfa058b780bcdbe8130e9cf3e62))
+* **plugins:** Added more info about `add_to_*` and the svelte-check
+  plugin ([`3e0051c`](https://github.com/robinvandernoord/su6-checker/commit/3e0051c968f97883ef7dc7859bdf5b3138753c73))
+* **pypi:** Indicate 3.10
+  support ([`a547da0`](https://github.com/robinvandernoord/su6-checker/commit/a547da0783cfccfa058b780bcdbe8130e9cf3e62))
 
 ## v1.5.2 (2023-06-21)
-
-
 
 ## v1.5.1 (2023-06-20)
 
 ### Documentation
 
-* **logo:** Use png instead of svg because that was being funky ([`89d71a5`](https://github.com/robinvandernoord/su6-checker/commit/89d71a59a74f046f5daa5da2180505676b273318))
-* **changelog:** Manually added change for 1.5.0 ([`3713a6b`](https://github.com/robinvandernoord/su6-checker/commit/3713a6bc61ef2eaa930721f7a7e6caa9cbbefe22))
+* **logo:** Use png instead of svg because that was being
+  funky ([`89d71a5`](https://github.com/robinvandernoord/su6-checker/commit/89d71a59a74f046f5daa5da2180505676b273318))
+* **changelog:** Manually added change for
+  1.5.0 ([`3713a6b`](https://github.com/robinvandernoord/su6-checker/commit/3713a6bc61ef2eaa930721f7a7e6caa9cbbefe22))
 
 ## v1.5.0 (2023-06-20)
 
