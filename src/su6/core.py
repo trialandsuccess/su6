@@ -6,19 +6,18 @@ import functools
 import inspect
 import json
 import operator
-import os
 import sys
 import types
 import typing
 from dataclasses import dataclass, field
 from typing import Any, Callable, Optional, TypeAlias, Union
 
-import black.files
 import configuraptor
 import plumbum.commands.processes as pb
 import tomli
 import typer
 from configuraptor import convert_config
+from configuraptor.helpers import find_pyproject_toml
 from plumbum import local
 from plumbum.machines import LocalCommand
 from rich import print
@@ -359,13 +358,6 @@ class Config(AbstractConfig):
 MaybeConfig: TypeAlias = Optional[Config]
 
 T_typelike: TypeAlias = type | types.UnionType | types.UnionType
-
-
-def find_pyproject_toml() -> Optional[str]:
-    """
-    Find the project's config toml, looks up until it finds the project root (black's logic).
-    """
-    return black.files.find_pyproject_toml((os.getcwd(),))
 
 
 def _get_su6_config(overwrites: dict[str, Any], toml_path: str = None) -> MaybeConfig:
