@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.7.0 (2023-09-28)
+
+### Feature
+
+* Allow --exclude for `all` and `fix` to skip specific checkers ([`27dd5b3`](https://github.com/robinvandernoord/su6-checker/commit/27dd5b3bffe8553c986a1dc574a8f72ca57233f1))
+
 ## v1.6.4 (2023-07-21)
 
 ### Refactor
