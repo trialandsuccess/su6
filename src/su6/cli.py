@@ -178,6 +178,7 @@ def check_all(
     directory: T_directory = None,
     ignore_uninstalled: bool = False,
     stop_after_first_failure: bool = None,
+    exclude: list[str] = None,
     # pytest:
     coverage: float = None,
     badge: bool = None,
@@ -192,6 +193,7 @@ def check_all(
                 But if you only want to know if everything passes,
                 you could set this flag (or in the config toml) to stop early.
 
+        exclude: choose extra services (in addition to config) to skip for this run.
         coverage: pass to pytest()
         badge: pass to pytest()
 
@@ -210,7 +212,7 @@ def check_all(
 
     tools = [ruff, black, mypy, bandit, isort, pydocstyle, pytest]
 
-    tools = config.determine_which_to_run(tools) + config.determine_plugins_to_run("add_to_all")
+    tools = config.determine_which_to_run(tools, exclude) + config.determine_plugins_to_run("add_to_all", exclude)
 
     exit_codes = []
     for tool in tools:
@@ -325,13 +327,15 @@ def pytest(
 
 @app.command(name="fix")
 @with_exit_code()
-def do_fix(directory: T_directory = None, ignore_uninstalled: bool = False) -> bool:
+def do_fix(directory: T_directory = None, ignore_uninstalled: bool = False, exclude: list[str] = None) -> bool:
     """
     Do everything that's safe to fix (not ruff because that may break semantics).
 
     Args:
         directory: where to run the tools on (default is current dir)
         ignore_uninstalled: use --ignore-uninstalled to skip exit code 127 (command not found)
+        exclude: choose extra services (in addition to config) to skip for this run.
+
 
     `def fix()` is not recommended because other commands have 'fix' as an argument so those names would collide.
     """
@@ -343,7 +347,7 @@ def do_fix(directory: T_directory = None, ignore_uninstalled: bool = False) -> b
 
     tools = [isort, black]
 
-    tools = config.determine_which_to_run(tools) + config.determine_plugins_to_run("add_to_fix")
+    tools = config.determine_which_to_run(tools, exclude) + config.determine_plugins_to_run("add_to_fix", exclude)
 
     exit_codes = [tool(directory, fix=True, _suppress=True, _ignore=ignored_exit_codes) for tool in tools]
 

@@ -315,29 +315,32 @@ class Config(AbstractConfig):
             # no cover because pytest can't test pytest :C
             self.badge = DEFAULT_BADGE
 
-    def determine_which_to_run(self, options: list[C]) -> list[C]:
+    def determine_which_to_run(self, options: list[C], exclude: list[str] = None) -> list[C]:
         """
         Filter out any includes/excludes from pyproject.toml (first check include, then exclude).
+
+        `exclude` via cli overwrites config option.
         """
         if self.include:
-            tools = [_ for _ in options if _.__name__ in self.include]
+            tools = [_ for _ in options if _.__name__ in self.include and _.__name__ not in (exclude or [])]
             tools.sort(key=lambda f: self.include.index(f.__name__))
             return tools
-        elif self.exclude:
-            return [_ for _ in options if _.__name__ not in self.exclude]
-        # if no include or excludes passed, just run all!
-        return options
+        elif self.exclude or exclude:
+            to_exclude = set((self.exclude or []) + (exclude or []))
+            return [_ for _ in options if _.__name__ not in to_exclude]
+        else:
+            return options
 
-    def determine_plugins_to_run(self, attr: str) -> list[T_Command]:
+    def determine_plugins_to_run(self, attr: str, exclude: list[str] = None) -> list[T_Command]:
         """
         Similar to `determine_which_to_run` but for plugin commands, and without 'include' ('exclude' only).
 
         Attr is the key in Registration to filter plugins on, e.g. 'add_to_all'
         """
+        to_exclude = set((self.exclude or []) + (exclude or []))
+
         return [
-            _.wrapped
-            for name, _ in state._registered_plugins.items()
-            if getattr(_, attr) and name not in (self.exclude or ())
+            _.wrapped for name, _ in state._registered_plugins.items() if getattr(_, attr) and name not in to_exclude
         ]
 
     def set_raw(self, raw: dict[str, Any]) -> None:
