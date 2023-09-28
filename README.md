@@ -34,7 +34,6 @@
 - [Usage](#usage)
 - [Plugins](#plugins)
 - [License](#license)
-- [Plugins](#plugins)
 - [Changelog](#changelog)
 
 ## Installation
