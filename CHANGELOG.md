@@ -2,6 +2,16 @@
 
 <!--next-version-placeholder-->
 
+## v1.8.0 (2023-10-09)
+
+### Feature
+
+* **config:** You can now add [tool.su6.default-flags] for each tool ([`d8c8034`](https://github.com/robinvandernoord/su6-checker/commit/d8c8034ccd39d572843f532b4b97ae8e48562dd7))
+
+### Documentation
+
+* **readme:** Fixed toc ([`28ca2b4`](https://github.com/robinvandernoord/su6-checker/commit/28ca2b466e16de68d3a312a7290572583668fa05))
+
 ## v1.7.0 (2023-09-28)
 
 ### Feature
