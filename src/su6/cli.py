@@ -113,6 +113,7 @@ def mypy(directory: T_directory = None) -> int:
 
     """
     config = state.update_config(directory=directory)
+
     return run_tool("mypy", config.directory)
 
 

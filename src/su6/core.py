@@ -116,15 +116,20 @@ def with_exit_code() -> T_Outer_Wrapper:
     return outer_wrapper
 
 
-def run_tool(tool: str, *args: str) -> int:
+def run_tool(tool: str, *_args: str) -> int:
     """
     Abstraction to run one of the cli checking tools and process its output.
 
     Args:
         tool: the (bash) name of the tool to run.
-        args: cli args to pass to the cli bash tool
+        _args: cli args to pass to the cli bash tool
     """
     tool_name = tool.split("/")[-1]
+
+    args = list(_args)
+
+    if state.config and (extra_flags := state.config.get_default_flags(tool)):
+        args.extend(extra_flags)
 
     try:
         cmd = local[tool]
@@ -301,6 +306,7 @@ class Config(AbstractConfig):
     exclude: list[str] = field(default_factory=list)
     stop_after_first_failure: bool = False
     json_indent: int = 4
+    default_flags: typing.Optional[dict[str, str | list[str]]] = field(default=None)
 
     ### pytest ###
     coverage: Optional[float] = None  # only relevant for pytest
@@ -356,6 +362,28 @@ class Config(AbstractConfig):
         Get the raw config dict (to load Plugin config).
         """
         return self.__raw or {}
+
+    def get_default_flags(self, service: str) -> list[str]:
+        """
+        For a given service, load the additional flags from pyproject.toml.
+
+        Example:
+            [tool.su6.default-flags]
+            mypy = "--disable-error-code misc"
+            black = ["--include", "something", "--exclude", "something"]
+        """
+        if not self.default_flags:
+            return []
+
+        flags = self.default_flags.get(service, [])
+        if not flags:
+            return []
+
+        if isinstance(flags, list):
+            return flags
+        elif isinstance(flags, str):
+            return [_.strip() for _ in flags.split(" ") if _.strip()]
+        raise TypeError(f"Invalid type {type(flags)} for flags.")
 
 
 MaybeConfig: TypeAlias = Optional[Config]
