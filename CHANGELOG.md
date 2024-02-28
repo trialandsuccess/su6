@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.8.1 (2024-02-28)
+
+### Fix
+
+* Pytest --convention option (also via config) ([`b1669ac`](https://github.com/robinvandernoord/su6-checker/commit/b1669ac40448ce93707025daeea3a41f1a3e2522))
+
 ## v1.8.0 (2023-10-09)
 
 ### Feature
