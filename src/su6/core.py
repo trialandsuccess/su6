@@ -306,6 +306,7 @@ class Config(AbstractConfig):
     exclude: list[str] = field(default_factory=list)
     stop_after_first_failure: bool = False
     json_indent: int = 4
+    docstyle_convention: Optional[str] = None
     default_flags: typing.Optional[dict[str, str | list[str]]] = field(default=None)
 
     ### pytest ###

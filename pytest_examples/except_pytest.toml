@@ -1,5 +1,6 @@
 [tool.su6]
 exclude = ['pytest']
+docstyle-convention = "google"
 
 ### BELOW IS COPIED FROM pyproject.toml,
 # because some libraries will see --config in the cli and try to parse that toml!

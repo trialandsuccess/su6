@@ -133,16 +133,22 @@ def bandit(directory: T_directory = None) -> int:
 
 @app.command()
 @with_exit_code()
-def pydocstyle(directory: T_directory = None) -> int:
+def pydocstyle(directory: T_directory = None, convention: str = None) -> int:
     """
     Runs the pydocstyle docstring checker.
 
     Args:
         directory: where to run pydocstyle on (default is current dir)
-
+        convention: pep257, numpy, google.
     """
-    config = state.update_config(directory=directory)
-    return run_tool("pydocstyle", config.directory)
+    config = state.update_config(directory=directory, docstyle_convention=convention)
+
+    args = [config.directory]
+
+    if config.docstyle_convention:
+        args.extend(["--convention", config.docstyle_convention])
+
+    return run_tool("pydocstyle", *args)
 
 
 @app.command(name="list")

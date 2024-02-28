@@ -127,6 +127,7 @@ coverage = 100
 badge = true
 # --format json indent
 json-indent = 4
+# docstyle-convention = "google"
 
 [tool.su6.demo]
 boolean-arg = true
