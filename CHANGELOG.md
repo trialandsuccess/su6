@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.8.2 (2024-03-04)
+
+### Fix
+
+* `su6 list` now also shows yellow circles for uninstalled tools ([`518ed84`](https://github.com/robinvandernoord/su6-checker/commit/518ed84583936ea8875b75df74e0c9bcca3389c2))
+
 ## v1.8.1 (2024-02-28)
 
 ### Fix
