@@ -10,7 +10,7 @@ from src.su6.core import (
     Config,
     Verbosity,
     _get_su6_config,
-    get_su6_config, run_tool, EXIT_CODE_SUCCESS, state,
+    get_su6_config, run_tool, EXIT_CODE_SUCCESS, state, is_installed,
 )
 
 from ._shared import EXAMPLES_PATH
@@ -111,6 +111,11 @@ def test_get_default_flags(capsys):
     assert "uno dos tres" in captured.err
 
     Singleton.clear(state.config)
+
+
+def test_is_installed():
+    assert is_installed("su6")
+    assert not is_installed("some-fake-package")
 
 
 def test_loading_state_without_load_config():

@@ -23,11 +23,13 @@ from .core import (
     EXIT_CODE_COMMAND_NOT_FOUND,
     GREEN_CIRCLE,
     RED_CIRCLE,
+    YELLOW_CIRCLE,
     Format,
     PlumbumError,
     Verbosity,
     dump_tools_with_results,
     info,
+    is_installed,
     log_command,
     print_json,
     run_tool,
@@ -167,10 +169,13 @@ def list_tools() -> None:
         tool_name = tool.__name__.replace("_", "-")
 
         if state.output_format == "text":
-            if tool in tools_to_run:
-                print(GREEN_CIRCLE, tool_name)
-            else:
+            if tool not in tools_to_run:
                 print(RED_CIRCLE, tool_name)
+            elif not is_installed(tool_name):  # pragma: no cover
+                print(YELLOW_CIRCLE, tool_name)
+            else:
+                # tool in tools_to_run
+                print(GREEN_CIRCLE, tool_name)
 
         elif state.output_format == "json":
             output[tool_name] = tool in tools_to_run

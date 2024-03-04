@@ -116,6 +116,16 @@ def with_exit_code() -> T_Outer_Wrapper:
     return outer_wrapper
 
 
+def is_installed(tool: str) -> bool:
+    """
+    Check whether a certain tool is installed (/ can be found via 'which').
+    """
+    try:
+        return bool(local["which"](tool))
+    except pb.ProcessExecutionError:
+        return False
+
+
 def run_tool(tool: str, *_args: str) -> int:
     """
     Abstraction to run one of the cli checking tools and process its output.

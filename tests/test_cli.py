@@ -11,7 +11,7 @@ from src.su6.core import (
     EXIT_CODE_COMMAND_NOT_FOUND,
     GREEN_CIRCLE,
     RED_CIRCLE,
-    PlumbumError,
+    PlumbumError, YELLOW_CIRCLE, ApplicationState,
 )
 
 # by default, click's cli runner mixes stdout and stderr for some reason...
