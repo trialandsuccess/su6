@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.8.3 (2024-03-20)
+
+### Fix
+
+* Try to find executables via `python -m` as a fallback, e.g. when installed via pipx ([`5174ac0`](https://github.com/robinvandernoord/su6-checker/commit/5174ac0b46c26e7db0f1f29194e71603195234ce))
+
 ## v1.8.2 (2024-03-04)
 
 ### Fix
