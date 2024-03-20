@@ -1,5 +1,6 @@
 import contextlib
-import os
+import sys
+from dataclasses import dataclass
 
 import pytest
 from configuraptor import Singleton
@@ -8,9 +9,17 @@ from configuraptor.errors import ConfigErrorInvalidType
 from src.su6.core import (
     ApplicationState,
     Config,
+    ExitCodes,
     Verbosity,
     _get_su6_config,
-    get_su6_config, run_tool, EXIT_CODE_SUCCESS, state, is_installed,
+    get_su6_config,
+    is_available_via_python,
+    is_installed,
+    on_tool_failure,
+    on_tool_missing,
+    on_tool_success,
+    run_tool,
+    state, run_tool_via_python,
 )
 
 from ._shared import EXAMPLES_PATH
@@ -101,14 +110,22 @@ def test_get_default_flags(capsys):
     state.verbosity = 4
     Singleton.clear(state.config)
     state.load_config()
-    state.config.default_flags = {
-        "echo": ["uno", "dos", "tres"]
-    }
+    state.config.default_flags = {"echo": ["uno", "dos", "tres"]}
 
-    assert run_tool("echo") == EXIT_CODE_SUCCESS
+    assert run_tool("echo") == ExitCodes.success
     captured = capsys.readouterr()
 
     assert "uno dos tres" in captured.err
+
+    assert run_tool_via_python("__hello__") == ExitCodes.success
+    captured = capsys.readouterr()
+    assert "Hello world!" in captured.err
+
+    # can not be found:
+    assert run_tool_via_python("fake-news-xyz") == ExitCodes.command_not_found
+
+    # can be found but fails:
+    assert run_tool_via_python("su6.cli", "fail") == ExitCodes.error
 
     Singleton.clear(state.config)
 
@@ -123,3 +140,25 @@ def test_loading_state_without_load_config():
     # skip state.load_config
     assert state.update_config() == get_su6_config()
     Singleton.clear(state.config)
+
+
+def test_is_available_via_python():
+    assert not is_installed("__hello__", python_fallback=False)
+    assert is_installed("__hello__", python_fallback=True)
+    assert is_available_via_python("__hello__")
+
+
+@dataclass
+class DummyError:
+    stdout: str = ""
+    stderr: str = ""
+
+
+def test_on_tool_callbacks():
+    # only for coverage tbh
+    state.verbosity = Verbosity.verbose
+    state.output_format = "text"
+
+    assert on_tool_success("-", "") == ExitCodes.success
+    assert on_tool_missing("-") == ExitCodes.command_not_found
+    assert on_tool_failure("-", DummyError()) == ExitCodes.error

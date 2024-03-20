@@ -95,7 +95,7 @@ prettier = [
 ]
 
 [project.scripts]
-su6 = "su6.cli:app"
+su6 = "su6:app"
 
 [project.urls]
 Documentation = "https://github.com/trialandsuccess/su6#readme"

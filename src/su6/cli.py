@@ -20,10 +20,10 @@ from .core import (
     DEFAULT_BADGE,
     DEFAULT_FORMAT,
     DEFAULT_VERBOSITY,
-    EXIT_CODE_COMMAND_NOT_FOUND,
     GREEN_CIRCLE,
     RED_CIRCLE,
     YELLOW_CIRCLE,
+    ExitCodes,
     Format,
     PlumbumError,
     Verbosity,
@@ -220,7 +220,7 @@ def check_all(
 
     ignored_exit_codes = set()
     if ignore_uninstalled:
-        ignored_exit_codes.add(EXIT_CODE_COMMAND_NOT_FOUND)
+        ignored_exit_codes.add(ExitCodes.command_not_found)
 
     tools = [ruff, black, mypy, bandit, isort, pydocstyle, pytest]
 
@@ -355,7 +355,7 @@ def do_fix(directory: T_directory = None, ignore_uninstalled: bool = False, excl
 
     ignored_exit_codes = set()
     if ignore_uninstalled:
-        ignored_exit_codes.add(EXIT_CODE_COMMAND_NOT_FOUND)
+        ignored_exit_codes.add(ExitCodes.command_not_found)
 
     tools = [isort, black]
 

@@ -6,10 +6,12 @@ import functools
 import inspect
 import json
 import operator
+import pydoc
 import sys
 import types
 import typing
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any, Callable, Optional, TypeAlias, Union
 
 import configuraptor
@@ -32,6 +34,18 @@ RED_CIRCLE = "🔴"
 EXIT_CODE_SUCCESS = 0
 EXIT_CODE_ERROR = 1
 EXIT_CODE_COMMAND_NOT_FOUND = 127
+
+
+class ExitCodes:
+    """
+    Store the possible EXIT_CODE_ items for ease of use (and autocomplete).
+    """
+
+    # enum but not really
+    success = EXIT_CODE_SUCCESS
+    error = EXIT_CODE_ERROR
+    command_not_found = EXIT_CODE_COMMAND_NOT_FOUND
+
 
 PlumbumError = (pb.ProcessExecutionError, pb.ProcessTimedOut, pb.ProcessLineTimedOut, pb.CommandNotFound)
 
@@ -107,7 +121,7 @@ def with_exit_code() -> T_Outer_Wrapper:
 
             if retcode in _ignore_exit_codes:  # pragma: no cover
                 # there is an error code, but we choose to ignore it -> return 0
-                return EXIT_CODE_SUCCESS
+                return ExitCodes.success
 
             return retcode
 
@@ -116,14 +130,84 @@ def with_exit_code() -> T_Outer_Wrapper:
     return outer_wrapper
 
 
-def is_installed(tool: str) -> bool:
+def is_available_via_python(tool: str) -> bool:
+    """
+    Sometimes, an executable is not available in PATH (e.g. via pipx) but it is available as `python -m something`.
+
+    This tries to test for that.
+        May not work for exceptions like 'semantic-release'/'semantic_release' (python-semantic-release)
+    """
+    try:
+        pydoc.render_doc(tool)
+        return True
+    except ImportError:
+        return False
+
+
+def is_installed(tool: str, python_fallback: bool = True) -> bool:
     """
     Check whether a certain tool is installed (/ can be found via 'which').
     """
     try:
         return bool(local["which"](tool))
     except pb.ProcessExecutionError:
-        return False
+        return is_available_via_python(tool) if python_fallback else False
+
+
+def on_tool_success(tool_name: str, result: str) -> int:
+    """
+    Last step of run_tool or run_tool_via_python on success.
+    """
+    if state.output_format == "text":
+        print(GREEN_CIRCLE, tool_name)
+
+    if state.verbosity > 2:  # pragma: no cover
+        log_cmd_output(result)
+
+    return ExitCodes.success  # success
+
+
+def on_tool_missing(tool_name: str) -> int:
+    """
+    If tool can't be found in both run_tool and run_tool_via_python.
+    """
+    if state.verbosity > 2:
+        warn(f"Tool {tool_name} not installed!")
+
+    if state.output_format == "text":
+        print(YELLOW_CIRCLE, tool_name)
+
+    return ExitCodes.command_not_found  # command not found
+
+
+def on_tool_failure(tool_name: str, e: pb.ProcessExecutionError) -> int:
+    """
+    If tool fails in run_tool or run_tool_via_python.
+    """
+    if state.output_format == "text":
+        print(RED_CIRCLE, tool_name)
+
+    if state.verbosity > 1:
+        log_cmd_output(e.stdout, e.stderr)
+    return ExitCodes.error  # general error
+
+
+def run_tool_via_python(tool_name: str, *args: str) -> int:
+    """
+    Fallback: try `python -m tool ...` instead of `tool ...`.
+    """
+    cmd = local[sys.executable]["-m", tool_name]
+    if state.verbosity >= 3:
+        log_command(cmd, args)
+
+    try:
+        result = cmd(*args)
+        return on_tool_success(tool_name, result)
+    except pb.ProcessExecutionError as e:
+        if "No module named" in e.stderr:
+            return on_tool_missing(tool_name)
+
+        return on_tool_failure(tool_name, e)
 
 
 def run_tool(tool: str, *_args: str) -> int:
@@ -143,34 +227,18 @@ def run_tool(tool: str, *_args: str) -> int:
 
     try:
         cmd = local[tool]
-
-        if state.verbosity >= 3:
-            log_command(cmd, args)
-
-        result = cmd(*args)
-
-        if state.output_format == "text":
-            print(GREEN_CIRCLE, tool_name)
-
-        if state.verbosity > 2:  # pragma: no cover
-            log_cmd_output(result)
-
-        return EXIT_CODE_SUCCESS  # success
     except pb.CommandNotFound:  # pragma: no cover
-        if state.verbosity > 2:
-            warn(f"Tool {tool_name} not installed!")
+        return run_tool_via_python(tool_name, *args)
 
-        if state.output_format == "text":
-            print(YELLOW_CIRCLE, tool_name)
+    if state.verbosity >= 3:
+        log_command(cmd, args)
 
-        return EXIT_CODE_COMMAND_NOT_FOUND  # command not found
+    try:
+        result = cmd(*args)
+        return on_tool_success(tool_name, result)
+
     except pb.ProcessExecutionError as e:
-        if state.output_format == "text":
-            print(RED_CIRCLE, tool_name)
-
-        if state.verbosity > 1:
-            log_cmd_output(e.stdout, e.stderr)
-        return EXIT_CODE_ERROR  # general error
+        return on_tool_failure(tool_name, e)
 
 
 class Verbosity(enum.Enum):
@@ -402,7 +470,7 @@ MaybeConfig: TypeAlias = Optional[Config]
 T_typelike: TypeAlias = type | types.UnionType | types.UnionType
 
 
-def _get_su6_config(overwrites: dict[str, Any], toml_path: str = None) -> MaybeConfig:
+def _get_su6_config(overwrites: dict[str, Any], toml_path: Optional[str | Path] = None) -> MaybeConfig:
     """
     Parse the users pyproject.toml (found using black's logic) and extract the tool.su6 part.
 
@@ -427,7 +495,7 @@ def _get_su6_config(overwrites: dict[str, Any], toml_path: str = None) -> MaybeC
 
     config = configuraptor.load_into(Config, tool_config, key="su6")
 
-    config.update(pyproject=toml_path)
+    config.update(pyproject=str(toml_path))
     config.update(**overwrites)
     # for plugins:
     config.set_raw(tool_config["su6"])
