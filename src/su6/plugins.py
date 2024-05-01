@@ -1,6 +1,7 @@
 """
 Provides a register decorator for third party plugins, and a `include_plugins` (used in cli.py) that loads them.
 """
+
 import typing
 from dataclasses import dataclass
 from importlib.metadata import EntryPoint, entry_points
@@ -248,8 +249,8 @@ class BoundMethodOf(typing.Protocol[T]):
     """
 
     __self__: T
-    __name__: str  # noqa: A003 - property does exist on the class
-    __doc__: typing.Optional[str]  # noqa: A003 - property does exist on the class
+    __name__: str
+    __doc__: typing.Optional[str]
 
     def __call__(self, a: int) -> str:  # pragma: no cover
         """

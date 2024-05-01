@@ -1,4 +1,5 @@
 """This file contains all Typer Commands."""
+
 import contextlib
 import math
 import os
@@ -58,7 +59,8 @@ def ruff(directory: T_directory = None) -> int:
 
     """
     config = state.update_config(directory=directory)
-    return run_tool("ruff", config.directory)
+
+    return run_tool("ruff", "check", config.directory)
 
 
 @app.command()
