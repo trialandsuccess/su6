@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.8.4 (2024-05-01)
+
+### Fix
+
+* Upgrade deprecated ruff usage ([`106d67a`](https://github.com/robinvandernoord/su6-checker/commit/106d67a247695869e623904bc1ca66a81b91506b))
+
 ## v1.8.3 (2024-03-20)
 
 ### Fix
