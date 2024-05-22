@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.9.0 (2024-05-22)
+
+### Feature
+
+* Swap out coverage-badge with genbadge for more future compatibility ([`3732dbb`](https://github.com/robinvandernoord/su6-checker/commit/3732dbb0bc14434ca610ecfd7edaa85ac742d2c3))
+
 ## v1.8.4 (2024-05-01)
 
 ### Fix
