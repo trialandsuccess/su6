@@ -81,7 +81,7 @@ pytest = [
 
 dev = [
     "hatch",
-    "python-semantic-release",
+    "python-semantic-release<8",
     "su6-plugin-demo",
 ]
 
