@@ -44,7 +44,7 @@ all = [
     "pydocstyle",
     "pytest",
     "pytest-cov",
-    "coverage-badge",
+    "genbadge[coverage]",
     "contextlib-chdir; python_version < '3.11'",
 ]
 
@@ -75,7 +75,7 @@ pydocstyle = [
 pytest = [
     "pytest",
     "pytest-cov",
-    "coverage-badge",
+    "genbadge[coverage]",
     "contextlib-chdir; python_version < '3.11'",
 ]
 

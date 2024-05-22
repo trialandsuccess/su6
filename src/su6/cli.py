@@ -254,6 +254,7 @@ def pytest(
     directory: T_directory = None,
     html: bool = False,
     json: bool = False,
+    xml: bool = False,
     coverage: int = None,
     badge: bool = None,
     k: typing.Annotated[str, typer.Option("-k")] = None,  # fw to pytest
@@ -268,6 +269,7 @@ def pytest(
         directory: where to run pytests on (default is current dir)
         html: generate HTML coverage output?
         json: generate JSON coverage output?
+        xml: generate XML coverage output?
         coverage: threshold for coverage (in %)
         badge: generate coverage badge (svg)? If you want to change the name, do this in pyproject.toml
 
@@ -296,13 +298,21 @@ def pytest(
         # json output required!
         json = True
 
+    if config.badge is not None:
+        # xml output required!
+        xml = True
+
     if k:
+        # -k for specific test
         args.extend(["-k", k])
     if s:
+        # -s for showing output
         args.append("-s")
     if v:
+        # -v for verbose
         args.append("-v")
     if x:
+        # -x for stopping after first failure
         args.append("-x")
 
     if html:
@@ -310,6 +320,9 @@ def pytest(
 
     if json:
         args.extend(["--cov-report", "json"])
+
+    if xml:
+        args.extend(["--cov-report", "xml"])
 
     exit_code = run_tool("pytest", *args)
 
@@ -332,7 +345,7 @@ def pytest(
             with contextlib.suppress(FileNotFoundError):
                 os.remove(config.badge)
 
-            result = local["coverage-badge"]("-o", config.badge)
+            result = local["genbadge"]("coverage", "-i", "coverage.xml", "-o", config.badge)
             if state.verbosity > 2:
                 info(result)
 
