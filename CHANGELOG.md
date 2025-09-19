@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.9.1 (2025-09-19)
+
+### Fix
+
+* Bump typer + apply fixes for the breaking changes ([`d8b0c89`](https://github.com/robinvandernoord/su6-checker/commit/d8b0c893f992a8f5ca38d672bdb788da66c2d373))
+
 ## v1.9.0 (2024-05-22)
 
 ### Feature
