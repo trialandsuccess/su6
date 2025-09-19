@@ -23,7 +23,7 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dependencies = [
-    "typer[all]",
+    "typer >=0.18, <0.19",
     "plumbum",
     "configuraptor >= 1.14",
 ]

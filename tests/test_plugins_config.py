@@ -11,8 +11,7 @@ from src.su6.plugins import PluginConfig, PluginLoader, register
 
 class FakeModule1:
     @register(with_state=True)
-    class MyPluginConfig(PluginConfig):
-        ...
+    class MyPluginConfig(PluginConfig): ...
 
     @register(config_key="demo.extra")
     class NoState(PluginConfig):
@@ -77,8 +76,7 @@ def test_singleton():
     Singleton.clear()
     assert not Singleton._instances
 
-    class MySingletonState(PluginConfig):
-        ...
+    class MySingletonState(PluginConfig): ...
 
     inst1 = MySingletonState()
     inst2 = MySingletonState()

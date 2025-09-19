@@ -312,6 +312,10 @@ class Verbosity(enum.Enum):
             # special cases where Typer instanciates its cli arguments,
             # return False or it will crash
             return False
+
+        if other is None:
+            other = DEFAULT_VERBOSITY
+
         if not isinstance(other, (str, int, Verbosity)):
             raise TypeError(f"Object of type {type(other)} can not be compared with Verbosity")
         return self._compare(self, other, operator.eq)
@@ -618,11 +622,11 @@ class ApplicationState:
 
         Also updates attached plugin configs.
         """
-        if "verbosity" in overwrites:
+        if overwrites.get("verbosity") is not None:
             self.verbosity = overwrites["verbosity"]
-        if "config_file" in overwrites:
+        if overwrites.get("config_file") is not None:
             self.config_file = overwrites.pop("config_file")
-        if "output_format" in overwrites:
+        if overwrites.get("output_format") is not None:
             self.output_format = overwrites.pop("output_format")
 
         self.config = get_su6_config(toml_path=self.config_file, **overwrites)

@@ -9,7 +9,7 @@ from src.su6.cli import app
 from src.su6.plugins import PluginLoader, register
 from su6.core import with_exit_code
 
-runner = CliRunner(mix_stderr=False)
+runner = CliRunner()
 
 
 class FakeModule2:

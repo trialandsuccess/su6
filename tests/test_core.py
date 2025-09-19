@@ -10,6 +10,7 @@ from src.su6.core import (
     ApplicationState,
     Config,
     ExitCodes,
+    Format,
     Verbosity,
     _get_su6_config,
     get_su6_config,
@@ -19,7 +20,8 @@ from src.su6.core import (
     on_tool_missing,
     on_tool_success,
     run_tool,
-    state, run_tool_via_python,
+    run_tool_via_python,
+    state,
 )
 
 from ._shared import EXAMPLES_PATH
@@ -162,3 +164,8 @@ def test_on_tool_callbacks():
     assert on_tool_success("-", "") == ExitCodes.success
     assert on_tool_missing("-") == ExitCodes.command_not_found
     assert on_tool_failure("-", DummyError()) == ExitCodes.error
+
+
+def test_hash():
+    assert hash(Verbosity.normal) == hash(Verbosity.normal.value)
+    assert hash(Format.json) == hash(Format.json.value)

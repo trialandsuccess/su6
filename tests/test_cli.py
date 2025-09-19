@@ -10,7 +10,7 @@ from src.su6.cli import app, run_tool
 from src.su6.core import GREEN_CIRCLE, RED_CIRCLE, ExitCodes, PlumbumError
 
 # by default, click's cli runner mixes stdout and stderr for some reason...
-runner = CliRunner(mix_stderr=False)
+runner = CliRunner()
 
 from ._shared import BAD_CODE, EXAMPLES_PATH, GOOD_CODE
 
