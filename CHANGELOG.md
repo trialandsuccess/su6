@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.10.0 (2025-11-01)
+
+### Feature
+
+* `find_project_root` helper ([`41c378f`](https://github.com/robinvandernoord/su6-checker/commit/41c378f11adfba142c8f46c4aeb92bca59762114))
+
 ## v1.9.1 (2025-09-19)
 
 ### Fix
