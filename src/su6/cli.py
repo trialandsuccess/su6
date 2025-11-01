@@ -488,7 +488,7 @@ def show_config_callback() -> Never:
 def main(
     ctx: typer.Context,
     config: str = None,
-    verbosity: Verbosity = DEFAULT_VERBOSITY,
+    verbosity: Verbosity = None,
     output_format: typing.Annotated[Format, typer.Option("--format")] = DEFAULT_FORMAT,
     # stops the program:
     show_config: bool = False,
@@ -507,6 +507,9 @@ def main(
         version: display current version?
 
     """
+    if verbosity is None:
+        verbosity = DEFAULT_VERBOSITY
+
     if state.config:
         # if a config already exists, it's outdated, so we clear it.
         # we don't clear everything since Plugin configs may be already cached.
