@@ -28,6 +28,7 @@ from rich import print
 if typing.TYPE_CHECKING:  # pragma: no cover
     from .plugins import AnyRegistration
 
+
 GREEN_CIRCLE = "🟢"
 YELLOW_CIRCLE = "🟡"
 RED_CIRCLE = "🔴"

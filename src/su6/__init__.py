@@ -10,6 +10,7 @@ from rich import print
 
 from .cli import app
 from .core import GREEN_CIRCLE, RED_CIRCLE, YELLOW_CIRCLE, ExitCodes, print_json, state
+from .helpers import find_project_root
 
 # for plugins:
 from .plugins import register as register_plugin
@@ -22,6 +23,7 @@ __all__ = [
     "RED_CIRCLE",
     "YELLOW_CIRCLE",
     "ExitCodes",
+    "find_project_root",
     "print_json",
     "state",
     "register_plugin",
