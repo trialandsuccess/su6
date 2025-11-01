@@ -172,7 +172,7 @@ exclude = ["venv", ".bak"]
 [tool.ruff]
 target-version = "py311"
 line-length = 120
-extend-exclude = ["*.bak/", "venv*/"]
+extend-exclude = ["*.bak/", "venv*/", "pytest_examples/*"]
 
 [tool.ruff.lint]
 select = [
