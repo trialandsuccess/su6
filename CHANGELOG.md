@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.10.1 (2025-11-01)
+
+### Fix
+
+* Default verbosity ([`cc4d22c`](https://github.com/robinvandernoord/su6-checker/commit/cc4d22cfdd2d58408489a21c389e490c3e571948))
+
 ## v1.10.0 (2025-11-01)
 
 ### Feature
