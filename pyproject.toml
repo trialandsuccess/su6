@@ -1,10 +1,9 @@
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["uv_build>=0.12.4,<0.13"]
+build-backend = "uv_build"
 
 [project]
 name = "su6"
-dynamic = ["version"]
 description = 'Python cli tool to use tools for some common code quality checks (opinionated)'
 readme = "README.md"
 requires-python = ">=3.10"
@@ -27,9 +26,7 @@ dependencies = [
     "plumbum",
     "configuraptor >= 1.14",
 ]
-
-[template.plugins.default]
-src-layout = true
+version = "1.10.1"
 
 [tool.setuptools.package-data]
 "su6" = ["py.typed"]
@@ -80,8 +77,6 @@ pytest = [
 ]
 
 dev = [
-    "hatch",
-    "python-semantic-release<8",
     "su6-plugin-demo",
 ]
 
@@ -102,18 +97,52 @@ Documentation = "https://github.com/trialandsuccess/su6#readme"
 Issues = "https://github.com/trialandsuccess/su6/issues"
 Source = "https://github.com/trialandsuccess/su6"
 
-[tool.hatch.version]
-path = "src/su6/__about__.py"
+[tool.vommit]
+allow_breaking_bang = true
+allow_breaking_footer = true
+prerelease_token = "beta"
+confirm = true
+ignore = []
 
-[tool.semantic_release]
+[tool.vommit.git]
+enabled = true
+origin = "origin"
 branch = "master"
-version_variable = "src/su6/__about__.py:__version__"
-change_log = "CHANGELOG.md"
-upload_to_repository = false
-upload_to_release = false
-build_command = "hatch build"
+on_wrong_branch = "error"
+tag_format = "v{version}"
+commit_format = "{version}"
 
-### required in every su6 pyproject: ###
+[tool.vommit.changelog]
+enabled = true
+file = "CHANGELOG.md"
+include_prereleases = false
+placeholder = "<!--next-version-placeholder-->"
+placeholder_regex = "<auto>"
+entry_title_format = "## v{version} ({date:%Y-%m-%d})"
+
+[tool.vommit.changelog.levels]
+feat = "Feature{s}"
+fix = "Fix{es}"
+break = "Breaking Change{s}"
+docs = "Documentation"
+perf = "Performance"
+
+[tool.vommit.pypi]
+enabled = true
+use_keyring = true
+
+[tool.vommit.commands]
+clean = "rm -rf ./dist"
+build = "uv build"
+publish = "uv publish"
+post_publish = ""
+
+[tool.vommit.version_bump_map]
+break = "major"
+feat = "minor"
+fix = "patch"
+perf = "patch"
+
 [tool.su6]
 # every checker:
 directory = "src"
