@@ -7,11 +7,14 @@ jobs:
   check:
     name: Check with `su6 all`
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.11', '3.12', '3.14']
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: ${{ matrix.python-version }}
           cache: 'pip' # caching pip dependencies
       - run: pip install .[all]
       - run: su6 all --coverage 100 --stop-after-first-failure
