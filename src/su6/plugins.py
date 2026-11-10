@@ -69,7 +69,7 @@ class PluginConfig(AbstractConfig):
         self.attach_extra("state", global_state)
 
     def _fields(self) -> typing.Generator[str, typing.Any, None]:
-        yield from self.__annotations__.keys()
+        yield from vars(type(self)).get("__annotations__", {}).keys()
         if self.extras:
             yield from self.extras.keys()  # -> self.state in _values
 
